@@ -1,0 +1,142 @@
+// CineStream Database Schema
+// Based on system design document v4.0
+ // Note: Prisma 7.x — connection URLs configured in prisma.config.ts / PrismaClient constructor
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== ENUMS ====================
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?
+  name      String
+  avatar    String?
+  role      Role     @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  watchlist Watchlist[]
+  history   WatchHistory[]
+
+  @@map("users")
+}
+
+model Movie {
+  id              String    @id @default(cuid())
+  nguoncId        String    @unique  // movie.id từ NguonC
+  slug            String    @unique  // movie.slug
+  name            String             // movie.name
+  originalName    String?            // movie.original_name
+  description     String?   @db.Text // movie.description
+  thumbUrl        String?            // movie.thumb_url
+  posterUrl       String?            // movie.poster_url
+  quality         String?            // "HD", "FHD"
+  language        String?            // "Vietsub", "Thuyết Minh"
+  director        String?            // null ở phim bộ
+  casts           String?            // null ở phim bộ
+  time            String?            // "104 phút" hoặc null
+  totalEpisodes   Int       @default(0)
+  currentEpisode  String?            // "Hoàn tất (24/24)" | "FULL" | "Tập 12"
+  status          String?            // "ongoing" | "completed" — suy ra từ current_episode
+  year            String?            // từ category group "Năm"
+  isActive        Boolean   @default(true)
+  nguoncCreatedAt DateTime?          // movie.created
+  lastSyncedAt    DateTime?          // movie.modified
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  episodes   Episode[]
+  categories CategoriesOnMovies[]
+  watchlist  Watchlist[]
+  history    WatchHistory[]
+
+  @@map("movies")
+}
+
+model Episode {
+  id         String  @id @default(cuid())
+  movieId    String
+  serverName String
+  name       String
+  slug       String
+  embedUrl   String?
+  m3u8Url    String?
+  sortOrder  Int     @default(0)
+
+  movie   Movie        @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  history WatchHistory[]
+
+  @@unique([movieId, serverName, slug])
+  @@map("episodes")
+}
+
+model Category {
+  id       String @id @default(cuid())
+  nguoncId String
+  slug     String @unique
+  name     String
+  group    String // "Thể loại" | "Quốc gia" | "Định dạng"
+
+  movies CategoriesOnMovies[]
+
+  @@unique([nguoncId, group])
+  @@map("categories")
+}
+
+model CategoriesOnMovies {
+  movieId    String
+  categoryId String
+
+  movie    Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@id([movieId, categoryId])
+  @@map("categories_on_movies")
+}
+
+model Watchlist {
+  id      String   @id @default(cuid())
+  userId  String
+  movieId String
+  addedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieId])
+  @@map("watchlist")
+}
+
+model WatchHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  movieId     String
+  episodeId   String
+  episodeSlug String
+  serverName  String
+  progressSec Int      @default(0)
+  watchedAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie   Movie   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, episodeId])
+  @@map("watch_history")
+}
