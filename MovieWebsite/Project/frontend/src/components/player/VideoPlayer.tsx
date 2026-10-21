@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Hls from 'hls.js';
 import PlayerControls from './PlayerControls';
 import { RotateCcw, X } from 'lucide-react';
@@ -48,7 +48,7 @@ export default function VideoPlayer({ m3u8Url, embedUrl, initialTime, onTimeUpda
     }
   }, [m3u8Url, embedUrl, initialTime]);
 
-  const performInitialSeek = () => {
+  const performInitialSeek = useCallback(() => {
     const video = videoRef.current;
     if (!video || hasSeekedRef.current || !initialTime || initialTime <= 0) return;
     if (!video.duration || initialTime < video.duration) {
@@ -56,7 +56,7 @@ export default function VideoPlayer({ m3u8Url, embedUrl, initialTime, onTimeUpda
       setCurrentTime(initialTime);
       hasSeekedRef.current = true;
     }
-  };
+  }, [initialTime]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -92,7 +92,7 @@ export default function VideoPlayer({ m3u8Url, embedUrl, initialTime, onTimeUpda
     } else if (embedUrl) {
       setUseIframe(true);
     }
-  }, [m3u8Url, embedUrl, useIframe]);
+  }, [m3u8Url, embedUrl, useIframe, performInitialSeek]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -111,7 +111,7 @@ export default function VideoPlayer({ m3u8Url, embedUrl, initialTime, onTimeUpda
       video.removeEventListener('timeupdate', onTime);
       video.removeEventListener('loadedmetadata', onMeta);
     };
-  }, [useIframe, onTimeUpdate, initialTime]);
+  }, [useIframe, onTimeUpdate, performInitialSeek]);
 
   const togglePlay = () => {
     const video = videoRef.current;

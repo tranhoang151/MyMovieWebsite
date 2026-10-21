@@ -176,7 +176,7 @@ export default function ProfilePage() {
 
                 // Check if movie is a TV series or a single movie
                 const isSeriesCategory = movie?.categories?.some(
-                  (c: any) => (c.category?.slug || c.slug) === 'phim-bo',
+                  (c: { category?: { slug?: string }; slug?: string }) => (c.category?.slug || c.slug) === 'phim-bo',
                 );
                 const isSeries =
                   isSeriesCategory ||

@@ -94,6 +94,7 @@ export class AuthService {
   /**
    * Refresh token — tạo accessToken + refreshToken mới (token rotation).
    * Xóa refreshToken cũ và lưu refreshToken mới.
+   * Kế thừa hạn chót tuyệt đối của phiên đăng nhập (Absolute session: 7 ngày kể từ lúc login ban đầu).
    */
   async refresh(refreshToken: string) {
     try {
@@ -105,7 +106,7 @@ export class AuthService {
       );
 
       if (!storedHash) {
-        throw new UnauthorizedException('Refresh token đã bị vô hiệu hóa');
+        throw new UnauthorizedException('Refresh token đã bị vô hiệu hóa hoặc đã hết hạn');
       }
 
       // Verify refreshToken hash
@@ -114,10 +115,18 @@ export class AuthService {
         throw new UnauthorizedException('Refresh token không hợp lệ');
       }
 
+      // Kiểm tra hạn chót tuyệt đối của session (nếu đã qua 7 ngày kể từ đăng nhập thì từ chối)
+      const nowSec = Math.floor(Date.now() / 1000);
+      const sessionExpiresAtSec = payload.sessionExpiresAt || payload.exp;
+      if (sessionExpiresAtSec && sessionExpiresAtSec <= nowSec) {
+        await this.cacheService.del(`refresh:${payload.sub}`);
+        throw new UnauthorizedException('Phiên đăng nhập đã hết hạn (quá 7 ngày). Vui lòng đăng nhập lại.');
+      }
+
       // Xóa refreshToken cũ
       await this.cacheService.del(`refresh:${payload.sub}`);
 
-      // Tạo tokens mới
+      // Kiểm tra user có tồn tại và đang hoạt động không
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
         select: { id: true, email: true, role: true, isActive: true },
@@ -127,8 +136,12 @@ export class AuthService {
         throw new UnauthorizedException('Tài khoản không tồn tại hoặc bị khóa');
       }
 
-      return this.generateTokens(user.id, user.email, user.role);
-    } catch {
+      // Kế thừa hạn chót ban đầu thay vì cấp mới 7 ngày
+      return this.generateTokens(user.id, user.email, user.role, sessionExpiresAtSec);
+    } catch (error) {
+      if (error instanceof UnauthorizedException || error instanceof ForbiddenException) {
+        throw error;
+      }
       throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã hết hạn');
     }
   }
@@ -195,27 +208,43 @@ export class AuthService {
 
   /**
    * Tạo accessToken + refreshToken và lưu refreshToken hash vào Redis.
+   * Nếu có existingSessionExpiresAtSec, giữ nguyên hạn chót tuyệt đối thay vì cấp mới 7 ngày.
    */
-  private async generateTokens(userId: string, email: string, role: string) {
-    const payload: JwtPayload = { sub: userId, email, role };
+  private async generateTokens(
+    userId: string,
+    email: string,
+    role: string,
+    existingSessionExpiresAtSec?: number,
+  ) {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const defaultDurationSec = 7 * 24 * 60 * 60; // 7 ngày tính bằng giây
+    const sessionExpiresAtSec = existingSessionExpiresAtSec || (nowSec + defaultDurationSec);
 
-    const accessExpiresIn = this.configService.get('JWT_EXPIRES_IN') || '15m';
-    const refreshExpiresIn = this.configService.get('JWT_REFRESH_EXPIRES_IN') || '7d';
+    const remainingSec = sessionExpiresAtSec - nowSec;
+    if (remainingSec <= 0) {
+      throw new UnauthorizedException('Phiên đăng nhập đã hết hạn (quá 7 ngày). Vui lòng đăng nhập lại.');
+    }
+
+    const payload: JwtPayload = { sub: userId, email, role };
+    const refreshPayload = { ...payload, sessionExpiresAt: sessionExpiresAtSec };
+
+    // Đảm bảo accessToken không sống lâu hơn thời gian còn lại của session
+    const accessDefaultSec = 15 * 60; // 15 phút
+    const finalAccessExpiresSec = Math.min(accessDefaultSec, remainingSec);
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        expiresIn: accessExpiresIn as any,
+        expiresIn: `${finalAccessExpiresSec}s` as any,
       }),
-      this.jwtService.signAsync(payload, {
-        expiresIn: refreshExpiresIn as any,
+      this.jwtService.signAsync(refreshPayload, {
+        expiresIn: `${remainingSec}s` as any,
         jwtid: randomUUID(),
       }),
     ]);
 
-    // Hash refreshToken và lưu vào Redis với TTL 7 ngày
+    // Hash refreshToken và lưu vào Redis với TTL đúng bằng remainingSec (tối đa 7 ngày từ lúc login)
     const refreshHash = await bcrypt.hash(refreshToken, 10);
-    const refreshTtlDays = 7 * 24 * 60 * 60; // 7 ngày tính bằng giây
-    await this.cacheService.set(`refresh:${userId}`, refreshHash, refreshTtlDays);
+    await this.cacheService.set(`refresh:${userId}`, refreshHash, remainingSec);
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -231,6 +260,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
+      sessionExpiresAt: sessionExpiresAtSec * 1000, // milliseconds cho client
       user,
     };
   }

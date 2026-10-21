@@ -30,10 +30,10 @@ export default function CallbackPage() {
         if (code) {
           const res = await api.post('/auth/oauth-exchange', { code });
           const authData = res.data?.data || res.data;
-          const { user, accessToken, refreshToken } = authData;
+          const { user, accessToken, refreshToken, sessionExpiresAt } = authData;
 
           if (user && accessToken && refreshToken) {
-            setAuth(user, accessToken, refreshToken);
+            setAuth(user, accessToken, refreshToken, sessionExpiresAt);
             router.push('/');
             return;
           }

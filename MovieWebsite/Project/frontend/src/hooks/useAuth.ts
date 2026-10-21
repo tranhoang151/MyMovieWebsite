@@ -20,6 +20,7 @@ interface AuthResponse {
   user: User;
   accessToken: string;
   refreshToken: string;
+  sessionExpiresAt?: number;
 }
 
 export function useAuth() {
@@ -30,10 +31,8 @@ export function useAuth() {
     mutationKey: [QUERY_KEYS.USER, 'login'],
     mutationFn: (credentials: LoginCredentials) => api.post<ApiResponse<AuthResponse>>(API_ENDPOINTS.AUTH.LOGIN, credentials),
     onSuccess: (response) => {
-      const { user, accessToken, refreshToken } = response.data.data;
-      setAuth(user, accessToken, refreshToken);
-      // Set accessToken as cookie for middleware
-      document.cookie = `accessToken=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+      const { user, accessToken, refreshToken, sessionExpiresAt } = response.data.data;
+      setAuth(user, accessToken, refreshToken, sessionExpiresAt);
       const redirect = new URLSearchParams(window.location.search).get('redirect') || '/';
       router.push(redirect);
     },

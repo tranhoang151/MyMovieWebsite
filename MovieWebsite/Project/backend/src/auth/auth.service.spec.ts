@@ -126,7 +126,42 @@ describe('AuthService', () => {
       const result = await authService.login(dto);
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
+      expect(result).toHaveProperty('sessionExpiresAt');
       expect(result).toHaveProperty('user');
+      expect(typeof result.sessionExpiresAt).toBe('number');
+    });
+  });
+
+  describe('refresh', () => {
+    it('should throw UnauthorizedException when refresh token is not in Redis', async () => {
+      mockJwt.verify.mockReturnValue({ sub: 'user-1', email: 'test@example.com', role: 'USER' });
+      mockCache.get.mockResolvedValue(null);
+
+      await expect(authService.refresh('invalid-token')).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw UnauthorizedException when absolute 7-day session has expired', async () => {
+      const pastExpiresAt = Math.floor(Date.now() / 1000) - 100; // expired 100s ago
+      mockJwt.verify.mockReturnValue({ sub: 'user-1', email: 'test@example.com', role: 'USER', sessionExpiresAt: pastExpiresAt });
+      mockCache.get.mockResolvedValue('$2b$10$hashedtoken');
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      await expect(authService.refresh('expired-token')).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should preserve existing sessionExpiresAt across token refreshes', async () => {
+      const futureExpiresAt = Math.floor(Date.now() / 1000) + 3 * 24 * 60 * 60; // 3 days remaining
+      mockJwt.verify.mockReturnValue({ sub: 'user-1', email: 'test@example.com', role: 'USER', sessionExpiresAt: futureExpiresAt });
+      mockCache.get.mockResolvedValue('$2b$10$hashedtoken');
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      mockJwt.signAsync.mockResolvedValue('mock-new-token');
+      mockCache.set.mockResolvedValue(true);
+
+      const result = await authService.refresh('valid-token');
+      expect(result).toHaveProperty('accessToken');
+      expect(result).toHaveProperty('refreshToken');
+      expect(result.sessionExpiresAt).toBe(futureExpiresAt * 1000);
     });
   });
 
