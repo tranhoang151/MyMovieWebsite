@@ -24,8 +24,26 @@ async function bootstrap() {
   app.use(compression());
 
   // CORS
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:3000',
+    'http://localhost:3001',
+  ].filter(Boolean) as string[];
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Cho phép requests không có origin (như curl, postman, mobile app)
+      if (!origin) return callback(null, true);
+      // Cho phép các origin được chỉ định, domain *.vercel.app và localhost
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.startsWith('http://localhost:')
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   });
 

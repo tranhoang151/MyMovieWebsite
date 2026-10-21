@@ -8,25 +8,25 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">Về CineStream</h3>
             <ul className="space-y-2">
-              <li><Link href="/about" className="hover:text-white transition-colors">Giới thiệu</Link></li>
-              <li><Link href="/contact" className="hover:text-white transition-colors">Liên hệ</Link></li>
-              <li><Link href="/careers" className="hover:text-white transition-colors">Tuyển dụng</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Giới thiệu</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Liên hệ</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Tuyển dụng</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="text-white font-semibold mb-4">Hỗ trợ</h3>
             <ul className="space-y-2">
-              <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
-              <li><Link href="/help" className="hover:text-white transition-colors">Trung tâm trợ giúp</Link></li>
-              <li><Link href="/terms" className="hover:text-white transition-colors">Điều khoản sử dụng</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">FAQ</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Trung tâm trợ giúp</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Điều khoản sử dụng</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="text-white font-semibold mb-4">Pháp lý</h3>
             <ul className="space-y-2">
-              <li><Link href="/privacy" className="hover:text-white transition-colors">Chính sách bảo mật</Link></li>
-              <li><Link href="/cookies" className="hover:text-white transition-colors">Cookie Preferences</Link></li>
-              <li><Link href="/legal" className="hover:text-white transition-colors">Thông báo pháp lý</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Chính sách bảo mật</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Cookie Preferences</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Thông báo pháp lý</Link></li>
             </ul>
           </div>
           <div>
