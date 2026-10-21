@@ -8,6 +8,8 @@ import VideoPlayer from '@/components/player/VideoPlayer';
 import EpisodeNav from '@/components/player/EpisodeNav';
 import EpisodeList from '@/components/movie/EpisodeList';
 import ServerSelector from '@/components/player/ServerSelector';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useWatchHistory } from '@/hooks/useWatchHistory';
@@ -106,69 +108,82 @@ function WatchContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-netflix-dark flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-netflix-red" />
+      <div className="min-h-screen bg-netflix-dark text-white flex flex-col">
+        <Navbar />
+        <main className="flex-grow pt-[68px] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-netflix-red" />
+        </main>
+        <Footer />
       </div>
     );
   }
 
   if (!movie || !currentEpData) {
     return (
-      <div className="min-h-screen bg-netflix-dark flex flex-col items-center justify-center text-white gap-4">
-        <p>Không tìm thấy tập phim.</p>
-        <Link href={`/movies/${slug}`} className="text-netflix-red hover:underline">
-          Quay lại trang phim
-        </Link>
+      <div className="min-h-screen bg-netflix-dark text-white flex flex-col">
+        <Navbar />
+        <main className="flex-grow pt-[68px] flex flex-col items-center justify-center text-white gap-4 py-20">
+          <p className="text-lg">Không tìm thấy tập phim.</p>
+          <Link href={`/movies/${slug}`} className="text-netflix-red hover:underline">
+            Quay lại trang phim
+          </Link>
+        </main>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-netflix-dark text-white">
-      <div className="p-4">
-        <Link
-          href={`/movies/${slug}`}
-          className="inline-flex items-center text-netflix-text-secondary hover:text-white transition-colors"
-        >
-          <ArrowLeft size={20} className="mr-2" /> Quay lại
-        </Link>
-      </div>
-      <div className="max-w-7xl mx-auto px-4">
-        <VideoPlayer
-          m3u8Url={currentEpData.m3u8Url}
-          embedUrl={currentEpData.embedUrl}
-          initialTime={initialTime}
-          onTimeUpdate={handleTimeUpdate}
-        />
-        <p className="mt-2 text-xs text-netflix-text-secondary">
-          💡 <em>Mẹo: Nếu trình phát báo lỗi chặn quảng cáo hoặc khóa phiên do mở F12 (DevTools), vui lòng tạm dừng AdBlock, tắt F12 và mở lại video trong tab mới để tiếp tục xem.</em>
-        </p>
-        <div className="mt-4">
-          <h1 className="text-xl font-bold">{movie.name}</h1>
-          <p className="text-netflix-text-secondary text-sm mt-1">
-            {currentEpData.name} — {currentServer}
-          </p>
-        </div>
-        <ServerSelector
-          servers={servers}
-          currentServer={currentServer}
-          onServerChange={setCurrentServer}
-        />
-        <EpisodeNav
-          slug={slug}
-          currentEp={ep}
-          episodes={currentServerEpisodes.map((e) => ({ name: e.name, slug: e.slug }))}
-        />
-        <div className="mt-8 pb-12">
-          <h2 className="text-lg font-bold mb-4">Danh sách tập</h2>
-          <EpisodeList
-            episodes={movie.episodes || []}
-            movieSlug={slug}
-            currentEp={ep}
-            currentServer={currentServer}
+    <div className="min-h-screen bg-netflix-dark text-white flex flex-col">
+      <Navbar />
+      <main className="flex-grow pt-[68px]">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="mb-3">
+            <Link
+              href={`/movies/${slug}`}
+              className="inline-flex items-center text-sm text-netflix-text-secondary hover:text-white transition-colors"
+            >
+              <ArrowLeft size={18} className="mr-2" /> Quay lại thông tin phim
+            </Link>
+          </div>
+
+          <VideoPlayer
+            m3u8Url={currentEpData.m3u8Url}
+            embedUrl={currentEpData.embedUrl}
+            initialTime={initialTime}
+            onTimeUpdate={handleTimeUpdate}
           />
+          <p className="mt-2 text-xs text-netflix-text-secondary">
+            💡 <em>Mẹo: Nếu trình phát báo lỗi chặn quảng cáo hoặc khóa phiên do mở F12 (DevTools), vui lòng tạm dừng AdBlock, tắt F12 và mở lại video trong tab mới để tiếp tục xem.</em>
+          </p>
+          <div className="mt-4">
+            <h1 className="text-xl md:text-2xl font-bold">{movie.name}</h1>
+            <p className="text-netflix-text-secondary text-sm mt-1">
+              {currentEpData.name} — {currentServer}
+            </p>
+          </div>
+          <ServerSelector
+            servers={servers}
+            currentServer={currentServer}
+            onServerChange={setCurrentServer}
+          />
+          <EpisodeNav
+            slug={slug}
+            currentEp={ep}
+            episodes={currentServerEpisodes.map((e) => ({ name: e.name, slug: e.slug }))}
+          />
+          <div className="mt-8 pb-12">
+            <h2 className="text-lg font-bold mb-4">Danh sách tập</h2>
+            <EpisodeList
+              episodes={movie.episodes || []}
+              movieSlug={slug}
+              currentEp={ep}
+              currentServer={currentServer}
+            />
+          </div>
         </div>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 }

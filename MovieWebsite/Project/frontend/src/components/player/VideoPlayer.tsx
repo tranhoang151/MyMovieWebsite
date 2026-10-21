@@ -163,13 +163,13 @@ export default function VideoPlayer({ m3u8Url, embedUrl, initialTime, onTimeUpda
   if (useIframe && isSafeEmbedUrl) {
     return (
       <div className="w-full flex flex-col gap-2">
-        {initialTime && initialTime > 5 && (
+        {initialTime && initialTime > 5 ? (
           <div className="bg-red-600/20 border border-red-500/40 text-red-200 text-xs px-3 py-2 rounded flex items-center justify-between">
             <span>
               ▶ Đang tiếp tục xem từ <strong>{formatTime(initialTime)}</strong> (dừng trước đó).
             </span>
           </div>
-        )}
+        ) : null}
         <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
           <iframe
             src={embedUrl}
@@ -189,7 +189,7 @@ export default function VideoPlayer({ m3u8Url, embedUrl, initialTime, onTimeUpda
       <video ref={videoRef} className="w-full h-full" playsInline onClick={togglePlay} />
 
       {/* Resume Toast Banner */}
-      {showResumeToast && initialTime && initialTime > 5 && (
+      {showResumeToast && initialTime && initialTime > 5 ? (
         <div className="absolute top-4 right-4 z-20 bg-black/85 backdrop-blur-md border border-white/20 text-white text-xs px-3 py-2 rounded-lg shadow-xl flex items-center gap-3 animate-fade-in">
           <span>
             Tiếp tục xem từ <strong>{formatTime(initialTime)}</strong>
@@ -207,7 +207,7 @@ export default function VideoPlayer({ m3u8Url, embedUrl, initialTime, onTimeUpda
             <X size={14} />
           </button>
         </div>
-      )}
+      ) : null}
 
       <PlayerControls
         isPlaying={isPlaying}
