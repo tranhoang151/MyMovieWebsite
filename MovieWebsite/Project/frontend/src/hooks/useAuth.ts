@@ -52,7 +52,20 @@ export function useAuth() {
       clearAuth();
       // Remove accessToken cookie
       document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      router.push(ROUTES.LOGIN);
+      if (typeof window !== 'undefined') {
+        window.location.href = ROUTES.HOME;
+      } else {
+        router.push(ROUTES.HOME);
+      }
+    },
+    onError: () => {
+      clearAuth();
+      document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      if (typeof window !== 'undefined') {
+        window.location.href = ROUTES.HOME;
+      } else {
+        router.push(ROUTES.HOME);
+      }
     },
   });
 

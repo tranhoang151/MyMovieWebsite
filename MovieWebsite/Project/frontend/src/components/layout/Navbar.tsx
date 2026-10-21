@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Search, User, LogOut, ListVideo, LayoutDashboard, X, Menu } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import api from '@/lib/axios';
 
 export default function Navbar() {
   const router = useRouter();
@@ -50,6 +51,25 @@ export default function Navbar() {
     if (query) {
       router.push(`/movies?search=${encodeURIComponent(query)}`);
       setIsMobileMenuOpen(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    setShowUserMenu(false);
+    setIsMobileMenuOpen(false);
+    try {
+      // Call backend to invalidate refresh token in Redis
+      await api.post('/auth/logout').catch(() => {});
+    } finally {
+      logout();
+      if (typeof document !== 'undefined') {
+        document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      }
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      } else {
+        router.push('/');
+      }
     }
   };
 
@@ -184,10 +204,7 @@ export default function Navbar() {
                     </Link>
                   )}
                   <button
-                    onClick={() => {
-                      logout();
-                      setShowUserMenu(false);
-                    }}
+                    onClick={handleLogout}
                     className="flex items-center w-full px-4 py-2 text-sm text-white hover:bg-netflix-hover"
                   >
                     <LogOut size={16} className="mr-2" />
@@ -276,10 +293,7 @@ export default function Navbar() {
                 </Link>
               )}
               <button
-                onClick={() => {
-                  logout();
-                  setIsMobileMenuOpen(false);
-                }}
+                onClick={handleLogout}
                 className="flex items-center text-red-400 text-sm py-1.5 hover:text-red-300 w-full"
               >
                 <LogOut size={16} className="mr-2" /> Đăng xuất

@@ -6,8 +6,9 @@ import { useAuthStore } from '@/store/authStore';
 import { useWatchHistory } from '@/hooks/useWatchHistory';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Play, Trash2, Clock, Film, Tv, PlayCircle, Eye } from 'lucide-react';
+import { Play, Trash2, Clock, Film, Tv, PlayCircle, Eye, LogOut } from 'lucide-react';
 import { WatchHistory } from '@/types';
+import api from '@/lib/axios';
 
 const formatTime = (secs: number) => {
   if (!secs || secs <= 0) return '00:00';
@@ -74,19 +75,43 @@ export default function ProfilePage() {
     }
   };
 
+  const handleProfileLogout = async () => {
+    try {
+      await api.post('/auth/logout').catch(() => {});
+    } finally {
+      const { logout } = useAuthStore.getState();
+      logout();
+      if (typeof document !== 'undefined') {
+        document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      }
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-16 px-4 md:px-12 bg-netflix-dark">
       <div className="max-w-6xl mx-auto space-y-10">
         {/* Profile Info */}
         <div className="bg-netflix-card/70 border border-white/10 rounded-xl p-6 md:p-8 backdrop-blur shadow-lg">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white text-2xl font-bold shadow-md">
-              {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center text-white text-2xl font-bold shadow-md shrink-0">
+                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-white">{user.name}</h1>
+                <p className="text-netflix-text-muted text-sm">{user.email}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white">{user.name}</h1>
-              <p className="text-netflix-text-muted text-sm">{user.email}</p>
-            </div>
+            <button
+              onClick={handleProfileLogout}
+              className="self-start sm:self-auto inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-red-400 bg-red-600/10 hover:bg-red-600/20 border border-red-500/30 rounded-lg transition-colors cursor-pointer"
+              title="Đăng xuất khỏi tài khoản"
+            >
+              <LogOut size={15} /> Đăng xuất
+            </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/10 text-sm">
