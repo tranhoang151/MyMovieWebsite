@@ -2,41 +2,58 @@
 
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import api from '@/lib/axios';
-import { User, ApiResponse } from '@/types';
 
 export default function CallbackPage() {
   const { login: setAuth } = useAuthStore();
   const router = useRouter();
+  const handledRef = useRef(false);
 
   useEffect(() => {
+    if (handledRef.current) return;
+    handledRef.current = true;
+
     const handleCallback = async () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        const accessToken = urlParams.get('accessToken');
-        const refreshToken = urlParams.get('refreshToken');
+        const code = urlParams.get('code');
+        const legacyAccessToken = urlParams.get('accessToken');
+        const legacyRefreshToken = urlParams.get('refreshToken');
 
-        if (!accessToken || !refreshToken) {
-          console.error('Missing tokens in callback URL');
-          router.push('/login');
+        // Clean URL query string immediately so sensitive codes/tokens don't linger in browser history
+        if (typeof window !== 'undefined' && window.history.replaceState) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // 1. Preferred secure flow: Exchange ephemeral authorization code
+        if (code) {
+          const res = await api.post('/auth/oauth-exchange', { code });
+          const authData = res.data?.data || res.data;
+          const { user, accessToken, refreshToken } = authData;
+
+          if (user && accessToken && refreshToken) {
+            setAuth(user, accessToken, refreshToken);
+            router.push('/');
+            return;
+          }
+        }
+
+        // 2. Legacy fallback
+        if (legacyAccessToken && legacyRefreshToken) {
+          const { data } = await api.get('/users/me', {
+            headers: {
+              Authorization: `Bearer ${legacyAccessToken}`,
+            },
+          });
+          const user = data.data || data;
+          setAuth(user, legacyAccessToken, legacyRefreshToken);
+          router.push('/');
           return;
         }
 
-        // Fetch user data using the access token
-        const { data } = await api.get<ApiResponse<User>>('/users/me', {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        const user = data.data;
-
-        // Store the tokens in auth state
-        setAuth(user, accessToken, refreshToken);
-
-        // Redirect to home page
-        router.push('/');
+        console.error('Missing authorization code in callback URL');
+        router.push('/login');
       } catch (error) {
         console.error('Callback error:', error);
         router.push('/login');
@@ -44,7 +61,11 @@ export default function CallbackPage() {
     };
 
     handleCallback();
-  }, []);
+  }, [router, setAuth]);
 
-  return null;
+  return (
+    <div className="min-h-screen bg-netflix-dark flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-netflix-red" />
+    </div>
+  );
 }

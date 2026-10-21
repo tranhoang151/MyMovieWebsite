@@ -158,7 +158,9 @@ export default function VideoPlayer({ m3u8Url, embedUrl, initialTime, onTimeUpda
 
   if (error) return <div className="w-full aspect-video bg-black flex items-center justify-center text-white">{error}</div>;
 
-  if (useIframe && embedUrl) {
+  const isSafeEmbedUrl = embedUrl && /^https?:\/\//i.test(embedUrl);
+
+  if (useIframe && isSafeEmbedUrl) {
     return (
       <div className="w-full flex flex-col gap-2">
         {initialTime && initialTime > 5 && (
@@ -169,7 +171,14 @@ export default function VideoPlayer({ m3u8Url, embedUrl, initialTime, onTimeUpda
           </div>
         )}
         <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
-          <iframe src={embedUrl} className="w-full h-full" allowFullScreen allow="autoplay; encrypted-media" />
+          <iframe
+            src={embedUrl}
+            className="w-full h-full"
+            allowFullScreen
+            allow="autoplay; encrypted-media; picture-in-picture"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
         </div>
       </div>
     );

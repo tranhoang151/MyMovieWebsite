@@ -14,6 +14,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { OAuthExchangeDto } from './dto/oauth-exchange.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
@@ -54,6 +55,16 @@ export class AuthController {
   }
 
   /**
+   * POST /api/auth/oauth-exchange — Trao đổi authorization code từ Google OAuth lấy tokens
+   */
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Post('oauth-exchange')
+  async exchangeCode(@Body() dto: OAuthExchangeDto) {
+    return this.authService.exchangeOAuthCode(dto.code);
+  }
+
+  /**
    * POST /api/auth/logout — Đăng xuất
    */
   @UseGuards(JwtAuthGuard)
@@ -75,18 +86,15 @@ export class AuthController {
 
   /**
    * GET /api/auth/google/callback — Google OAuth callback
+   * Bảo mật: Không truyền token trực tiếp qua URL query, thay vào đó truyền mã code tạm thời (TTL 60s)
    */
   @Public()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req: any, @Res() res: any) {
     const result = await this.authService.handleGoogleCallback(req.user);
-    // Redirect về frontend với tokens
+    const code = await this.authService.createOAuthExchangeCode(result);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const params = new URLSearchParams({
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-    });
-    return res.redirect(`${frontendUrl}/auth/callback?${params.toString()}`);
+    return res.redirect(`${frontendUrl}/auth/callback?code=${code}`);
   }
 }

@@ -2,6 +2,7 @@ import 'dotenv/config'; // ponytail: load env before module graph, otherwise Con
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
@@ -9,6 +10,14 @@ import { CacheService } from './services/cache.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Security Headers via Helmet (OWASP A05)
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+    }),
+  );
 
   // CORS
   app.enableCors({
@@ -19,7 +28,7 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api');
 
-  // Global pipes — ValidationPipe với class-validator
+  // Global pipes — ValidationPipe với class-validator (OWASP A08)
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -36,15 +45,18 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3001;
 
-  // Swagger UI (dev only)
-  const config = new DocumentBuilder()
-    .setTitle('CineStream API')
-    .setDescription('API documentation')
-    .setVersion('1.0')
-    .addTag('movies')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  // Swagger UI (dev only — OWASP A05: disable in production)
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('CineStream API')
+      .setDescription('API documentation')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .addTag('movies')
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   // Verify Redis connectivity on startup (non-blocking)
   try {
@@ -61,6 +73,8 @@ async function bootstrap() {
 
   await app.listen(port);
   console.log(`🚀 Backend running on http://localhost:${port}`);
-  console.log(`📚 Swagger UI: http://localhost:${port}/api/docs`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`📚 Swagger UI: http://localhost:${port}/api/docs`);
+  }
 }
 bootstrap();

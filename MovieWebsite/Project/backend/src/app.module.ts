@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -20,7 +21,7 @@ import { UsersModule } from './users/users.module';
       isGlobal: true,
     }),
 
-    // Rate limiting
+    // Rate limiting (OWASP A04)
     ThrottlerModule.forRoot([
       { name: 'short', ttl: 60000, limit: 100 },   // 100 req/phút (public)
       { name: 'auth', ttl: 60000, limit: 30 },      // 30 req/phút (auth endpoints)
@@ -48,6 +49,12 @@ import { UsersModule } from './users/users.module';
     AdminModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

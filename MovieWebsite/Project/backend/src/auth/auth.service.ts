@@ -172,6 +172,28 @@ export class AuthService {
   }
 
   /**
+   * Tạo temporary one-time OAuth exchange code lưu trong Redis (TTL 60s)
+   */
+  async createOAuthExchangeCode(data: any): Promise<string> {
+    const code = randomUUID();
+    await this.cacheService.set(`oauth:code:${code}`, JSON.stringify(data), 60);
+    return code;
+  }
+
+  /**
+   * Đổi temporary OAuth code lấy tokens và user info
+   */
+  async exchangeOAuthCode(code: string) {
+    const stored = await this.cacheService.get<string>(`oauth:code:${code}`);
+    if (!stored) {
+      throw new UnauthorizedException('Mã xác thực không hợp lệ hoặc đã hết hạn');
+    }
+    // Delete immediately (one-time use)
+    await this.cacheService.del(`oauth:code:${code}`);
+    return typeof stored === 'string' ? JSON.parse(stored) : stored;
+  }
+
+  /**
    * Tạo accessToken + refreshToken và lưu refreshToken hash vào Redis.
    */
   private async generateTokens(userId: string, email: string, role: string) {
