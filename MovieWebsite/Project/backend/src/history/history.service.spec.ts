@@ -39,21 +39,27 @@ describe('HistoryService', () => {
       progressSec: 120,
     });
 
-    expect(prisma.watchHistory.upsert).toHaveBeenCalledWith({
-      where: { userId_episodeId: { userId: 'u1', episodeId: 'e1' } },
-      create: expect.objectContaining({
-        userId: 'u1',
-        movieId: 'm1',
-        episodeId: 'e1',
-        serverName: 'S1',
-        progressSec: 120,
-        watchedAt: expect.any(Date),
+    expect(prisma.watchHistory.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId_episodeId: { userId: 'u1', episodeId: 'e1' } },
+        create: expect.objectContaining({
+          userId: 'u1',
+          movieId: 'm1',
+          episodeId: 'e1',
+          serverName: 'S1',
+          progressSec: 120,
+          watchedAt: expect.any(Date),
+        }),
+        update: {
+          progressSec: 120,
+          watchedAt: expect.any(Date),
+        },
+        include: {
+          movie: true,
+          episode: true,
+        },
       }),
-      update: {
-        progressSec: 120,
-        watchedAt: expect.any(Date),
-      },
-    });
+    );
   });
 
   it('gets episode history by slug', async () => {
@@ -84,7 +90,18 @@ describe('HistoryService', () => {
     await service.listHistory('u1');
     expect(prisma.watchHistory.findMany).toHaveBeenCalledWith({
       where: { userId: 'u1' },
-      include: { movie: true, episode: true },
+      include: {
+        movie: {
+          include: {
+            categories: {
+              include: {
+                category: true,
+              },
+            },
+          },
+        },
+        episode: true,
+      },
       orderBy: { watchedAt: 'desc' },
     });
   });

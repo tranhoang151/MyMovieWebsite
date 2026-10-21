@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  compress: true, // Bật Gzip/Brotli compression cho mọi Next.js static assets và SSR responses
   async rewrites() {
     return [
       {
@@ -9,6 +10,8 @@ const nextConfig = {
     ];
   },
   images: {
+    formats: ['image/avif', 'image/webp'], // Ưu tiên định dạng AVIF siêu nhẹ, fallback WebP
+    minimumCacheTTL: 86400, // Cache ảnh đã tối ưu hóa trong 24 giờ để tăng tốc độ tải lại
     remotePatterns: [
       {
         protocol: 'https',

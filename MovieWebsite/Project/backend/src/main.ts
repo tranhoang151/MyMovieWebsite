@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import compression from 'compression';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
@@ -18,6 +19,9 @@ async function bootstrap() {
       crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
     }),
   );
+
+  // Response Compression (Gzip / Deflate)
+  app.use(compression());
 
   // CORS
   app.enableCors({

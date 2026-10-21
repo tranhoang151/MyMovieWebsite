@@ -65,6 +65,9 @@ model Movie {
   watchlist  Watchlist[]
   history    WatchHistory[]
 
+  @@index([isActive, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([year])
   @@map("movies")
 }
 
@@ -106,6 +109,7 @@ model CategoriesOnMovies {
   category Category @relation(fields: [categoryId], references: [id])
 
   @@id([movieId, categoryId])
+  @@index([categoryId])
   @@map("categories_on_movies")
 }
 
@@ -119,6 +123,7 @@ model Watchlist {
   movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@unique([userId, movieId])
+  @@index([userId, addedAt(sort: Desc)])
   @@map("watchlist")
 }
 
@@ -138,5 +143,6 @@ model WatchHistory {
   episode Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, episodeId])
+  @@index([userId, watchedAt(sort: Desc)])
   @@map("watch_history")
 }
