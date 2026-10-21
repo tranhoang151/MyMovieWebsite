@@ -14,18 +14,39 @@ export default function AdminUsersPage() {
     queryKey: [QUERY_KEYS.ADMIN_USERS, page],
     queryFn: async () => {
       const res = await api.get(API_ENDPOINTS.USERS.LIST, { params: { page, limit: 20 } });
-      return res.data.data;
+      const raw = res.data?.data;
+      if (Array.isArray(raw)) {
+        return { items: raw, total: raw.length, page: 1, limit: 20, totalPages: 1 };
+      }
+      return raw;
     },
   });
 
   const blockMutation = useMutation({
     mutationFn: (userId: string) => api.patch(`${API_ENDPOINTS.USERS.BLOCK}/${userId}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_USERS] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_USERS] });
+      alert('Cập nhật trạng thái người dùng thành công!');
+    },
+    onError: (error: unknown) => {
+      console.error('Block failed:', error);
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      alert(`Thao tác thất bại: ${err?.response?.data?.message ?? err?.message ?? 'Lỗi không xác định'}`);
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (userId: string) => api.delete(`${API_ENDPOINTS.USERS.DELETE}/${userId}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_USERS] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_USERS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_STATS] });
+      alert('Xóa người dùng thành công!');
+    },
+    onError: (error: unknown) => {
+      console.error('Delete failed:', error);
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      alert(`Xóa thất bại: ${err?.response?.data?.message ?? err?.message ?? 'Lỗi không xác định'}`);
+    },
   });
 
   return (

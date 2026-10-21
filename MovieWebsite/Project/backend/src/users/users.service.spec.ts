@@ -1,6 +1,6 @@
 jest.mock('../prisma/prisma.service', () => ({ PrismaService: jest.fn() }));
 
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 describe('UsersService', () => {
@@ -13,6 +13,7 @@ describe('UsersService', () => {
         findUnique: jest.fn(),
         update: jest.fn(),
         findMany: jest.fn(),
+        delete: jest.fn(),
       },
     };
 
@@ -131,5 +132,44 @@ describe('UsersService', () => {
     mockPrisma.user.findUnique.mockResolvedValue(null);
 
     await expect(service.getUserById('missing')).rejects.toThrow(NotFoundException);
+  });
+
+  it('should block or toggle active status of a regular user', async () => {
+    const user = { id: 'user-1', role: 'USER', isActive: true };
+    mockPrisma.user.findUnique.mockResolvedValue(user);
+    mockPrisma.user.update.mockResolvedValue({ ...user, isActive: false });
+
+    const result = await service.blockUser('user-1');
+    expect(result.isActive).toBe(false);
+    expect(mockPrisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'user-1' },
+        data: { isActive: false },
+      }),
+    );
+  });
+
+  it('should throw ForbiddenException when trying to block an admin account', async () => {
+    const admin = { id: 'admin-1', role: 'ADMIN', isActive: true };
+    mockPrisma.user.findUnique.mockResolvedValue(admin);
+
+    await expect(service.blockUser('admin-1')).rejects.toThrow(ForbiddenException);
+  });
+
+  it('should delete a regular user', async () => {
+    const user = { id: 'user-1', role: 'USER', isActive: true };
+    mockPrisma.user.findUnique.mockResolvedValue(user);
+    mockPrisma.user.delete.mockResolvedValue(user);
+
+    const result = await service.deleteUser('user-1');
+    expect(result).toEqual({ id: 'user-1', deleted: true });
+    expect(mockPrisma.user.delete).toHaveBeenCalledWith({ where: { id: 'user-1' } });
+  });
+
+  it('should throw ForbiddenException when trying to delete an admin account', async () => {
+    const admin = { id: 'admin-1', role: 'ADMIN', isActive: true };
+    mockPrisma.user.findUnique.mockResolvedValue(admin);
+
+    await expect(service.deleteUser('admin-1')).rejects.toThrow(ForbiddenException);
   });
 });

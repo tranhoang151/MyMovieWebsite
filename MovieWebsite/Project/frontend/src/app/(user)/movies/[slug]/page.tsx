@@ -1,17 +1,23 @@
 'use client';
 
 import { useMovie } from '@/hooks/useMovies';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import EpisodeList from '@/components/movie/EpisodeList';
 import MovieDetail from '@/components/movie/MovieDetail';
 import { useWatchlist } from '@/hooks/useWatchlist';
+import { useAuthStore } from '@/store/authStore';
 
 export default function MovieDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params.slug as string;
   const { data: movie, isLoading } = useMovie(slug);
   const { watchlist, addToWatchlist, removeFromWatchlist } = useWatchlist();
-  const isInWatchlist = !!watchlist?.some((item) => item.movieId === movie?.id);
+  const { isAuthenticated } = useAuthStore();
+
+  const isInWatchlist = !!watchlist?.some(
+    (item) => item.movieId === movie?.id || item.movie?.slug === movie?.slug,
+  );
 
   if (isLoading) {
     return (
@@ -34,10 +40,23 @@ export default function MovieDetailPage() {
   }
 
   const handleWatchlistToggle = async () => {
-    if (isInWatchlist) {
-      await removeFromWatchlist(movie.id);
-    } else {
-      await addToWatchlist(movie.id);
+    const hasToken = typeof window !== 'undefined' && !!localStorage.getItem('accessToken');
+    if (!isAuthenticated && !hasToken) {
+      if (confirm('Bạn cần đăng nhập để thêm phim vào tủ phim. Chuyển đến trang đăng nhập ngay?')) {
+        router.push(`/login?redirect=/movies/${slug}`);
+      }
+      return;
+    }
+
+    try {
+      if (isInWatchlist) {
+        await removeFromWatchlist(movie.id);
+      } else {
+        await addToWatchlist(movie.id);
+      }
+    } catch (error) {
+      console.error('Lỗi khi cập nhật tủ phim:', error);
+      alert('Có lỗi xảy ra khi cập nhật tủ phim. Vui lòng thử lại!');
     }
   };
 
@@ -50,13 +69,18 @@ export default function MovieDetailPage() {
       />
 
       {/* Episodes */}
-      {movie.episodes && movie.episodes.length > 0 && (
+      {movie.episodes && movie.episodes.length > 0 ? (
         <div className="mt-12 px-4 md:px-12 max-w-7xl mx-auto">
           <h2 className="text-xl font-bold text-white mb-4">Danh sách tập</h2>
           <EpisodeList
             episodes={movie.episodes}
             movieSlug={movie.slug}
           />
+        </div>
+      ) : (
+        <div className="mt-12 px-4 md:px-12 max-w-7xl mx-auto">
+          <h2 className="text-xl font-bold text-white mb-4">Danh sách tập</h2>
+          <p className="text-netflix-text-secondary text-sm">Danh sách tập đang được cập nhật.</p>
         </div>
       )}
     </div>

@@ -4,9 +4,9 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-cover bg-center flex items-center justify-center"
+    <div className="min-h-screen bg-cover bg-center flex items-center justify-center bg-netflix-dark"
       style={{
-        backgroundImage: 'linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(\'/login-bg.jpg\')',
+        backgroundImage: 'radial-gradient(circle at center, rgba(30,30,30,0.8) 0%, rgba(10,10,10,0.95) 100%)',
       }}>
       <div className="w-full max-w-md mx-4">
         {children}

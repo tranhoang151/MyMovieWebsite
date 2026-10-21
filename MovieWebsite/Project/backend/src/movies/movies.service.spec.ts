@@ -13,6 +13,7 @@ describe('MoviesService', () => {
       movie: {
         findMany: jest.fn().mockResolvedValue([]),
         findUnique: jest.fn().mockResolvedValue(null),
+        count: jest.fn().mockResolvedValue(0),
       },
     };
 

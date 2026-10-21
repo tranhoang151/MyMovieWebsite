@@ -9,6 +9,7 @@ const createService = () => {
     movie: {
       findMany: jest.fn().mockResolvedValue([]),
       findUnique: jest.fn().mockResolvedValue({ id: '1', slug: 'test' }),
+      count: jest.fn().mockResolvedValue(0),
     },
   };
   return { service: new MoviesService(prisma as PrismaService), prisma };

@@ -7,7 +7,18 @@ export function useMovies(params?: { page?: number; limit?: number; type?: strin
     queryKey: ['movies', params],
     queryFn: async () => {
       const response = await api.get<PaginatedResponse<Movie>>('/movies', { params });
-      return response.data.data;
+      const raw = response.data?.data as unknown;
+      if (Array.isArray(raw)) {
+        const limit = params?.limit || 20;
+        return {
+          items: raw as Movie[],
+          total: raw.length,
+          page: params?.page || 1,
+          limit,
+          totalPages: Math.ceil(raw.length / limit) || 1,
+        };
+      }
+      return raw as PaginatedResponse<Movie>['data'];
     },
   });
 }

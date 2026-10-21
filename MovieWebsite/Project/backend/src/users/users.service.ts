@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -92,5 +92,45 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  async blockUser(userId: string, isActive?: boolean) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Người dùng không tồn tại');
+    }
+    if (user.role === 'ADMIN') {
+      throw new ForbiddenException('Không thể thực hiện thao tác này với tài khoản Admin');
+    }
+
+    const newActiveState = typeof isActive === 'boolean' ? isActive : !user.isActive;
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive: newActiveState },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async deleteUser(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Người dùng không tồn tại');
+    }
+    if (user.role === 'ADMIN') {
+      throw new ForbiddenException('Không thể thực hiện thao tác này với tài khoản Admin');
+    }
+
+    await this.prisma.user.delete({ where: { id: userId } });
+    return { id: userId, deleted: true };
   }
 }

@@ -4,9 +4,10 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Lấy token từ cookie hoặc localStorage (chỉ check cookie ở server side)
-  const accessToken = request.cookies.get('accessToken')?.value;
-  const userRole = request.cookies.get('userRole')?.value;
+  // Lấy token từ cookie (server-side) hoặc Authorization header (client-side)
+  const accessToken = 
+    request.cookies.get('accessToken')?.value ?? 
+    request.headers.get('authorization')?.split('Bearer ')[1];
 
   // Bảo vệ routes user (watchlist, profile)
   if (pathname.startsWith('/watchlist') || pathname.startsWith('/profile')) {
@@ -17,16 +18,14 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Bảo vệ routes admin
+  // Bảo vệ routes admin (chỉ cần kiểm tra authenticated, backend sẽ xử lý authorization)
   if (pathname.startsWith('/admin')) {
     if (!accessToken) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
-    if (userRole !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/', request.url));
-    }
+    // Loại bỏ kiểm tra role ở frontend vì backend đã có RolesGuard properly configured
   }
 
   return NextResponse.next();

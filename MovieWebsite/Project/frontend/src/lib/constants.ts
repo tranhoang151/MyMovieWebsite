@@ -25,10 +25,10 @@ export const API_ENDPOINTS = {
     LIST: '/movies',
     DETAIL: '/movies',
     SEARCH: '/movies/search',
-    SYNC: '/movies/sync',
+    SYNC: '/admin/movies/import',
     SYNC_EPISODES: '/movies',
-    DELETE: '/movies',
-    UPDATE: '/movies',
+    DELETE: '/admin/movies',
+    UPDATE: '/admin/movies',
   },
   USERS: {
     ME: '/users/me',

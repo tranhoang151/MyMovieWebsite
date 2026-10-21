@@ -23,14 +23,29 @@ export class QueryMoviesDto {
   category?: string;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
-  skip?: number = 0;
+  @IsString()
+  type?: string;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  take?: number = 20;
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit?: number = 20;
+
+  // Computed properties for internal use
+  get skip(): number {
+    const page = this.page ?? 1;
+    const limit = this.limit ?? 20;
+    return (page - 1) * limit;
+  }
+
+  get take(): number {
+    return this.limit ?? 20;
+  }
 }

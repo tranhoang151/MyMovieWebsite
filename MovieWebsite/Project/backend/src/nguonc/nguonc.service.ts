@@ -47,24 +47,32 @@ export class NguonCService {
     const yearCat = categories.find((c) => /năm/i.test(c.group || ''));
     const year = yearCat ? yearCat.name : null;
 
-    // Episodes mapping — defensive: support multiple structures
+    // Episodes mapping — defensive: support multiple structures (Array, { items: [...] }, { "0": {...} })
     const episodes: ParsedEpisode[] = [];
     try {
-      const eps = movie.episodes ?? movie.episode ?? null;
-      if (eps && Array.isArray(eps.items)) {
-        for (const item of eps.items) {
-          // item may contain serverName and inner items
-          const serverName = item.serverName || item.server || 'default';
-          const inner = item.items || [item];
-          for (const ep of inner) {
-            episodes.push({
-              serverName,
-              name: ep.name ?? ep.title ?? '',
-              slug: ep.slug ?? ep.id ?? '',
-              embedUrl: ep.embed ?? ep.embed_url ?? ep.embedUrl ?? null,
-              m3u8Url: ep.m3u8 ?? ep.m3u8_url ?? ep.m3u8Url ?? null,
-            });
-          }
+      const eps = (movie as any).episodes ?? (movie as any).episode ?? null;
+      let serverList: any[] = [];
+      if (Array.isArray(eps)) {
+        serverList = eps;
+      } else if (eps && Array.isArray(eps.items)) {
+        serverList = eps.items;
+      } else if (eps && typeof eps === 'object') {
+        serverList = Object.values(eps);
+      }
+
+      for (const item of serverList) {
+        if (!item || typeof item !== 'object') continue;
+        const serverName = item.server_name || item.serverName || item.server || 'default';
+        const inner = Array.isArray(item.items) ? item.items : [item];
+        for (const ep of inner) {
+          if (!ep || typeof ep !== 'object') continue;
+          episodes.push({
+            serverName: String(serverName),
+            name: String(ep.name ?? ep.title ?? ''),
+            slug: String(ep.slug ?? ep.id ?? ''),
+            embedUrl: ep.embed ?? ep.embed_url ?? ep.embedUrl ?? null,
+            m3u8Url: ep.m3u8 ?? ep.m3u8_url ?? ep.m3u8Url ?? null,
+          });
         }
       }
     } catch {}

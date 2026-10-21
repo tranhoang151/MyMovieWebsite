@@ -13,7 +13,27 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'phim.nguonc.com',
-        pathname: '/public/images/**',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.nguonc.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'img.nguonc.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'phim.nguonc.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.nguonc.com',
+        pathname: '/**',
       },
       {
         protocol: 'https',

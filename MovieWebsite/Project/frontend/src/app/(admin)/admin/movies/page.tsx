@@ -18,18 +18,42 @@ export default function AdminMoviesPage() {
     queryKey: [QUERY_KEYS.ADMIN_MOVIES, page],
     queryFn: async () => {
       const res = await api.get(API_ENDPOINTS.MOVIES.LIST, { params: { page, limit: 20 } });
-      return res.data.data;
+      const raw = res.data?.data;
+      if (Array.isArray(raw)) {
+        return { items: raw, total: raw.length, page: 1, limit: 20, totalPages: 1 };
+      }
+      return raw;
     },
   });
 
   const syncMutation = useMutation({
-    mutationFn: (slug: string) => api.post(`${API_ENDPOINTS.MOVIES.SYNC}/${slug}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_MOVIES] }),
+    mutationFn: (slug: string) => api.post('/admin/movies/import', { slug }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_MOVIES] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MOVIES] });
+      alert('Đồng bộ phim thành công!');
+      setSearchSlug('');
+    },
+    onError: (error: unknown) => {
+      console.error('Sync failed:', error);
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      alert(`Sync failed: ${err?.response?.data?.message ?? err?.message ?? 'Đồng bộ thất bại'}`);
+    },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`${API_ENDPOINTS.MOVIES.DELETE}/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_MOVIES] }),
+    mutationFn: (identifier: string) => api.delete(`${API_ENDPOINTS.MOVIES.DELETE}/${identifier}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_MOVIES] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.MOVIES] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_STATS] });
+      alert('Xóa phim thành công!');
+    },
+    onError: (error: unknown) => {
+      console.error('Delete failed:', error);
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      alert(`Xóa phim thất bại: ${err?.response?.data?.message ?? err?.message ?? 'Lỗi không xác định'}`);
+    },
   });
 
   return (
@@ -77,8 +101,8 @@ export default function AdminMoviesPage() {
                 <td className="px-4 py-3 text-netflix-text-secondary">{movie.totalEpisodes}</td>
                 <td className="px-4 py-3 text-netflix-text-secondary">{movie.quality}</td>
                 <td className="px-4 py-3">
-                  <button onClick={() => { if (confirm(`Xóa phim "${movie.name}"?`)) deleteMutation.mutate(movie.id); }}
-                    className="text-red-500 hover:text-red-400"><Trash2 size={16} /></button>
+                  <button onClick={() => { if (confirm(`Xóa phim "${movie.name}"?`)) deleteMutation.mutate(movie.slug || movie.id); }}
+                    className="text-red-500 hover:text-red-400" title="Xóa phim"><Trash2 size={16} /></button>
                 </td>
               </tr>
             ))}

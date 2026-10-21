@@ -91,6 +91,9 @@ export default function WatchPage() {
           embedUrl={currentEpData.embedUrl}
           onTimeUpdate={handleTimeUpdate}
         />
+        <p className="mt-2 text-xs text-netflix-text-secondary">
+          💡 <em>Mẹo: Nếu trình phát yêu cầu cho phép quảng cáo, bạn vui lòng tạm dừng AdBlock / Brave Shields cho trang này rồi bấm &quot;Kiểm tra lại&quot; để tiếp tục xem phim.</em>
+        </p>
         <div className="mt-4">
           <h1 className="text-xl font-bold">{movie.name}</h1>
           <p className="text-netflix-text-secondary text-sm mt-1">{currentEpData.name} — {currentServer}</p>

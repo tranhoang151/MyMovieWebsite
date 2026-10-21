@@ -5,8 +5,16 @@ import { PrismaService } from '../prisma/prisma.service';
 export class WatchlistService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async addToWatchlist(userId: string, movieSlug: string) {
-    const movie = await this.prisma.movie.findUnique({ where: { slug: movieSlug } });
+  private async findMovie(identifier: string) {
+    let movie = await this.prisma.movie.findUnique({ where: { slug: identifier } });
+    if (!movie) {
+      movie = await this.prisma.movie.findUnique({ where: { id: identifier } });
+    }
+    return movie;
+  }
+
+  async addToWatchlist(userId: string, movieSlugOrId: string) {
+    const movie = await this.findMovie(movieSlugOrId);
     if (!movie) throw new NotFoundException('Movie not found');
 
     const existing = await this.prisma.watchlist.findUnique({
@@ -20,8 +28,8 @@ export class WatchlistService {
     });
   }
 
-  async removeFromWatchlist(userId: string, movieSlug: string) {
-    const movie = await this.prisma.movie.findUnique({ where: { slug: movieSlug } });
+  async removeFromWatchlist(userId: string, movieSlugOrId: string) {
+    const movie = await this.findMovie(movieSlugOrId);
     if (!movie) throw new NotFoundException('Movie not found');
 
     await this.prisma.watchlist.deleteMany({

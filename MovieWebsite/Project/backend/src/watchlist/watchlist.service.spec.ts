@@ -39,6 +39,18 @@ describe('WatchlistService', () => {
     });
   });
 
+  it('adds a movie to watchlist by movie id fallback', async () => {
+    prisma.movie.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 'm1' });
+    prisma.watchlist.findUnique.mockResolvedValue(null);
+
+    await service.addToWatchlist('u1', 'm1');
+    expect(prisma.watchlist.create).toHaveBeenCalledWith({
+      data: { userId: 'u1', movieId: 'm1' },
+    });
+  });
+
   it('returns existing watchlist item if already present', async () => {
     prisma.movie.findUnique.mockResolvedValue({ id: 'm1' });
     prisma.watchlist.findUnique.mockResolvedValue({ id: 'w1' });
@@ -52,6 +64,18 @@ describe('WatchlistService', () => {
     prisma.movie.findUnique.mockResolvedValue({ id: 'm2' });
 
     const result = await service.removeFromWatchlist('u1', 'movie-slug');
+    expect(prisma.watchlist.deleteMany).toHaveBeenCalledWith({
+      where: { userId: 'u1', movieId: 'm2' },
+    });
+    expect(result).toEqual({ deleted: true });
+  });
+
+  it('removes a movie from watchlist by id fallback', async () => {
+    prisma.movie.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 'm2' });
+
+    const result = await service.removeFromWatchlist('u1', 'm2');
     expect(prisma.watchlist.deleteMany).toHaveBeenCalledWith({
       where: { userId: 'u1', movieId: 'm2' },
     });

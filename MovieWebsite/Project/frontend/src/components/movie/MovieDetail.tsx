@@ -17,7 +17,7 @@ export default function MovieDetail({ movie, onAddToWatchlist, isInWatchlist }: 
     <>
       <div className="relative h-[50vh] min-h-[400px]">
         <Image
-          src={movie.posterUrl || movie.thumbUrl || ''}
+          src={movie.posterUrl || movie.thumbUrl || '/placeholder-banner.jpg'}
           alt={movie.name}
           fill
           className="object-cover"
@@ -40,15 +40,8 @@ export default function MovieDetail({ movie, onAddToWatchlist, isInWatchlist }: 
       <p className="text-netflix-text-secondary mb-8 leading-relaxed line-clamp-3">{movie.description}</p>
 
       <div className="flex gap-3 mb-8">
-        {movie.totalEpisodes > 1 && firstEpisodeSlug && (
+        {firstEpisodeSlug && (
           <Link href={`/watch/${movie.slug}/${firstEpisodeSlug}`}>
-            <Button className="bg-netflix-red hover:bg-netflix-red-hover text-white">
-              <Play size={18} className="mr-2" /> Xem ngay
-            </Button>
-          </Link>
-        )}
-        {movie.totalEpisodes <= 1 && movie.episodes?.[0] && (
-          <Link href={`/watch/${movie.slug}/${movie.episodes[0].slug}`}>
             <Button className="bg-netflix-red hover:bg-netflix-red-hover text-white">
               <Play size={18} className="mr-2" /> Xem ngay
             </Button>

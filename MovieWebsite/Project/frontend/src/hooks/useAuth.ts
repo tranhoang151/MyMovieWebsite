@@ -32,6 +32,8 @@ export function useAuth() {
     onSuccess: (response) => {
       const { user, accessToken, refreshToken } = response.data.data;
       setAuth(user, accessToken, refreshToken);
+      // Set accessToken as cookie for middleware
+      document.cookie = `accessToken=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
       const redirect = new URLSearchParams(window.location.search).get('redirect') || '/';
       router.push(redirect);
     },
@@ -48,6 +50,8 @@ export function useAuth() {
     mutationFn: () => api.post(API_ENDPOINTS.AUTH.LOGOUT),
     onSuccess: () => {
       clearAuth();
+      // Remove accessToken cookie
+      document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       router.push(ROUTES.LOGIN);
     },
   });

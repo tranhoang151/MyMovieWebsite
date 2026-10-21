@@ -27,11 +27,11 @@ export default function DataTable<T extends { id: string | number }>({
   skeletonRows = 5,
   pagination,
 }: DataTableProps<T>) {
-  const renderCell = (row: T, col: Column<T>) => {
+  const renderCell = (row: T, col: Column<T>, colIndex: number) => {
     const value = typeof col.accessor === 'function'
       ? col.accessor(row)
       : (row[col.accessor] as ReactNode);
-    return <td className={`px-4 py-3 ${col.className || ''}`}>{value}</td>;
+    return <td key={colIndex} className={`px-4 py-3 ${col.className || ''}`}>{value}</td>;
   };
 
   return (
@@ -60,7 +60,7 @@ export default function DataTable<T extends { id: string | number }>({
           ) : (
             data?.map((row) => (
               <tr key={row.id} className="hover:bg-netflix-hover">
-                {columns.map((col) => renderCell(row, col))}
+                {columns.map((col, colIndex) => renderCell(row, col, colIndex))}
               </tr>
             ))
           )}

@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, Param, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Patch, Delete, Body, Param, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -34,5 +34,26 @@ export class UsersController {
   @Roles('ADMIN')
   async getUser(@Param('id') id: string) {
     return this.usersService.getUserById(id);
+  }
+
+  @Patch(':id/block')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  async blockUser(@Param('id') id: string, @Body() body?: { isActive?: boolean }) {
+    return this.usersService.blockUser(id, body?.isActive);
+  }
+
+  @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  async toggleBlockUser(@Param('id') id: string, @Body() body?: { isActive?: boolean }) {
+    return this.usersService.blockUser(id, body?.isActive);
+  }
+
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  async deleteUser(@Param('id') id: string) {
+    return this.usersService.deleteUser(id);
   }
 }
