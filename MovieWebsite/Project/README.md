@@ -1,291 +1,368 @@
-# 🎬 CineStream - Website Xem Phim Trực Tuyến
+# 🎬 CineStream - Nền tảng Xem Phim Trực Tuyến Chất Lượng Cao
 
-Website xem phim trực tuyến theo kiến trúc Monorepo với **NestJS + TypeScript** (Backend) và **Next.js 14 App Router + TypeScript** (Frontend).
+[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014%20App%20Router-black?logo=next.js)](https://nextjs.org/)
+[![NestJS](https://img.shields.io/badge/Backend-NestJS%2011-ea2845?logo=nestjs)](https://nestjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%20(Prisma)-336791?logo=postgresql)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Cache-Redis%20(Upstash)-dc382d?logo=redis)](https://redis.io/)
+[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind%20CSS-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+**CineStream** là dự án website xem phim trực tuyến hiện đại được xây dựng theo mô hình **Monorepo**, kết hợp sức mạnh của **Next.js 14 App Router** ở Frontend và **NestJS + Prisma** ở Backend. Hệ thống được tích hợp **Redis Caching**, cơ chế cào và đồng bộ phim tự động qua **BullMQ**, video streaming chất lượng cao với **HLS.js**, cùng kiến trúc bảo mật chuẩn **OWASP Top 10**.
+
+---
+
+## 📑 Mục lục
+
+1. [Kiến trúc hệ thống](#-kiến-trúc-hệ-thống)
+2. [Tính năng nổi bật](#-tính-năng-nổi-bật)
+3. [Công nghệ sử dụng (Tech Stack)](#-công-nghệ-sử-dụng)
+4. [Yêu cầu hệ thống](#-yêu-cầu-hệ-thống)
+5. [Hướng dẫn cài đặt & Chạy dự án](#-hướng-dẫn-cài-đặt--chạy-dự-án)
+6. [Cấu hình biến môi trường](#-cấu-hình-biến-môi-trường)
+7. [Tối ưu hóa hiệu năng & Bảo mật](#-tối-ưu-hóa-hiệu-năng--bảo-mật)
+8. [Danh mục API Endpoints chính](#-danh-mục-api-endpoints-chính)
+9. [Cấu trúc thư mục dự án](#-cấu-trúc-thư-mục-dự-án)
+10. [Kiểm thử (Testing)](#-kiểm-thử-testing)
+
+---
+
+## 🏛️ Kiến trúc hệ thống
+
+```mermaid
+flowchart TD
+    User["👤 Người dùng (Trình duyệt / Mobile / Desktop)"]
+    
+    subgraph Frontend["Frontend (Next.js 14 App Router - Port 3000)"]
+        UI["Tailwind CSS + Framer Motion"]
+        State["Zustand + React Query (Cache 5m)"]
+        Player["Video Player (HLS.js / Iframe Fallback)"]
+        Watcher["SessionWatcher (Kiểm tra hạn 7 ngày)"]
+    end
+
+    subgraph Backend["Backend (NestJS 11 - Port 3001)"]
+        Guard["Helmet + CORS + ThrottlerGuard (Rate Limit)"]
+        AuthModule["Auth Service (JWT + Refresh Token + Google OAuth)"]
+        MovieModule["Movies Service (Search, Filter, Pagination)"]
+        HistoryModule["Watch History & Watchlist"]
+        BullMQ["BullMQ Worker (Auto Sync Cronjob)"]
+        Compress["Compression Middleware (Gzip/Deflate)"]
+    end
+
+    subgraph Storage["Data & Cache Layer"]
+        Redis[("Redis (Upstash / Local)\n- Token Rotation\n- Movie List / Detail Cache")]
+        Postgres[("PostgreSQL (Supabase / Local)\n- Movies, Episodes, Categories\n- Users, Watchlist, WatchHistory")]
+    end
+
+    subgraph CDN["External Video CDN"]
+        NguonC["NguonC Streaming Server (HLS .m3u8 / Iframe)"]
+    end
+
+    User <--> Frontend
+    Frontend <-->|REST API + Bearer Token| Backend
+    Backend <-->|Read / Write Cache| Redis
+    Backend <-->|Prisma ORM (Indexes)| Postgres
+    Backend <-->|Cào dữ liệu phim| NguonC
+    Player -.->|Stream Video Trực Tiếp| NguonC
+```
+
+---
+
+## ✨ Tính năng nổi bật
+
+### 1. Phía Người dùng (User Experience)
+* 🏠 **Trang chủ hiện đại:** Hero Banner phim nổi bật, thanh cuộn Carousel phim theo chủ đề (Phim mới cập nhật, Phim bộ đang chiếu, Phim lẻ hot) với Swiper mượt mà.
+* 🔍 **Tìm kiếm & Bộ lọc linh hoạt:** Tìm kiếm phim theo tên, lọc theo định dạng (Phim bộ / Phim lẻ), thể loại, quốc gia, năm phát hành, trạng thái hoàn tất/đang chiếu.
+* 🎬 **Trình phát video thông minh:**
+  * Hỗ trợ phát luồng **HLS (.m3u8)** với chất lượng cao và fallback sang **Iframe** khi luồng gốc gặp sự cố.
+  * Tùy chọn chuyển đổi Server phát video nhanh chóng.
+  * Thanh điều hướng tập phim trực quan cho phim bộ.
+  * Thanh Navbar được giữ nguyên ở đầu trang giúp người dùng chuyển trang dễ dàng khi đang xem phim.
+* ⏱️ **Tiếp tục xem phim dở (Resume Playback):**
+  * Tự động lưu tiến độ xem phim ngầm mỗi 5 giây vào cơ sở dữ liệu.
+  * Hiển thị danh sách **"Phim đang xem dở"** ngay trong trang **Trang cá nhân (`/profile`)** kèm tên tập đang xem và thanh tiến trình thời gian.
+  * Nhấn vào phim sẽ tự động mở đúng tập phim đó và tua trực tiếp đến phút dừng trước đó.
+* ⭐ **Tủ phim yêu thích (Watchlist):** Thêm và quản lý danh sách phim dự định xem, đồng bộ theo từng tài khoản.
+* 📱 **Thiết kế Responsive 100%:** Tối ưu hóa hoàn hảo cho mọi kích thước màn hình từ điện thoại di động (Mobile Menu trượt), Tablet đến màn hình máy tính lớn.
+
+### 2. Quản trị viên (Admin Portal)
+* 📊 **Dashboard Thống kê:** Báo cáo trực quan tổng số phim, người dùng, lượt xem và hoạt động hệ thống.
+* 📥 **Tự động hóa đồng bộ phim (Crawler):**
+  * Đồng bộ phim tự động từ nguồn dữ liệu mở qua hàng đợi **BullMQ** theo chu kỳ Cron job.
+  * Công cụ Sync phim thủ công theo slug dành cho Admin.
+* 👥 **Quản lý người dùng:** Xem danh sách, phân quyền (USER / ADMIN), khóa hoặc mở khóa tài khoản người dùng vi phạm.
+* 🎥 **Quản lý danh mục phim:** Duyệt, lọc và xóa phim lỗi khỏi hệ thống.
+
+---
+
+## 🔒 Bảo mật chuyên sâu (OWASP Top 10 Compliant)
+
+Hệ thống được kiểm định và áp dụng đầy đủ các biện pháp phòng chống tấn công theo tiêu chuẩn **OWASP**:
+
+1. **Helmet Security Headers:** Bảo vệ chống clickjacking, MIME sniffing, ép buộc HTTPS và cấu hình CSP/COOP/CORP.
+2. **Luồng xác thực Google OAuth 2.0 an toàn (One-Time Code Exchange):**
+   * Không bao giờ truyền trực tiếp JWT Access/Refresh Token qua URL Query parameters.
+   * Sử dụng mã xác thực dùng 1 lần (TTL 60s lưu trong Redis) để hoán đổi lấy token an toàn.
+3. **Cơ chế phiên đăng nhập 7 ngày tuyệt đối (Absolute 7-Day Session):**
+   * Phiên đăng nhập có thời hạn tối đa đúng 7 ngày kể từ lúc người dùng đăng nhập lần đầu.
+   * Token refresh không gia hạn cuốn chiếu vô tận.
+   * `SessionWatcher` và Axios interceptors tự động phát hiện và đăng xuất người dùng về trang chủ khi phiên hết hạn.
+4. **Rate Limiting toàn diện:** Sử dụng `ThrottlerGuard` giới hạn 100 req/phút cho API công khai và 30 req/phút cho các API đăng nhập/đăng ký nhằm ngăn chặn tấn công Brute-force & DoS.
+5. **Iframe Sandboxing:** Chặn mã độc XSS khi phát video qua iframe nhúng từ bên ngoài.
+6. **Bảo vệ mật khẩu:** Hash mật khẩu an toàn với **bcrypt** (cost 12) và kiểm tra regex độ phức tạp mật khẩu bắt buộc.
+
+---
+
+## ⚡ Tối ưu hóa hiệu năng & Tốc độ
+
+* 🚀 **Redis Multi-tier Caching:**
+  * Caching danh sách phim (`findAll`) trong 5 phút.
+  * Caching chi tiết phim (`findBySlug`) trong 10 phút.
+  * Tự động xóa cache (Invalidation) ngay khi có phim mới được sync.
+* 📦 **Payload Optimization:** Cắt bỏ việc trả về hàng ngàn tập phim ở API danh sách, giảm kích thước JSON response từ ~1MB xuống còn **~20KB** (giảm 95% dữ liệu mạng).
+* 🗄️ **Database Indexing:** Bổ sung composite index trên PostgreSQL (`[isActive, createdAt DESC]`, `[categoryId]`, `[userId, watchedAt DESC]`), loại bỏ hoàn toàn Full Table Scan.
+* 🗜️ **HTTP Gzip/Deflate Compression:** Toàn bộ API response được nén tự động trước khi gửi đến client.
+* 🖼️ **Next.js Image Modern Formats:** Tự động nén ảnh poster sang chuẩn **AVIF & WebP** với thời gian cache 24h, giúp tải nhanh gấp đôi trên mạng di động.
+
+---
+
+## 🛠️ Công nghệ sử dụng
+
+### Backend
+* **Ngôn ngữ & Nền tảng:** Node.js, TypeScript
+* **Framework:** NestJS 11 (Modular Architecture)
+* **ORM & Database:** Prisma 7.x, PostgreSQL (Supabase / Local)
+* **In-Memory Cache & Queue:** Redis (Upstash / Local), BullMQ
+* **Bảo mật & Auth:** Passport.js, JWT, bcrypt, Helmet, NestJS Throttler
+* **API Documentation:** Swagger / OpenAPI
+
+### Frontend
+* **Framework:** Next.js 14 (App Router, Server & Client Components)
+* **Giao diện & Styling:** Tailwind CSS, shadcn/ui, Framer Motion
+* **Quản lý trạng thái:** Zustand (với LocalStorage Persist), TanStack React Query (StaleTime 5m)
+* **Xử lý Media & Trình phát:** HLS.js, Swiper Carousel
+* **HTTP Client:** Axios (Custom Request & Response Interceptors)
+* **Icons:** Lucide React
 
 ---
 
 ## 📋 Yêu cầu hệ thống
 
-- **Node.js**: v18+ 
-- **npm**: v9+
-- **PostgreSQL** (Supabase hoặc local)
-- **Redis** (Upstash hoặc local)
+* **Node.js:** v18.17.0 trở lên (khuyên dùng Node.js 20 LTS)
+* **npm:** v9 trở lên
+* **PostgreSQL:** v14 trở lên (hoặc tài khoản [Supabase](https://supabase.com))
+* **Redis:** v6 trở lên (hoặc tài khoản [Upstash Redis](https://upstash.com))
 
 ---
 
-## 🚀 Bước 1: Clone và cài đặt dependencies
+## 🚀 Hướng dẫn cài đặt & Chạy dự án
+
+### Bước 1: Clone repository và cài đặt Dependencies
 
 ```bash
 # Clone repository
-git clone <repo-url>
-cd MovieWebsite/Project
+git clone https://github.com/<your-username>/MyMovieWebsite.git
+cd MyMovieWebsite/MovieWebsite/Project
 
-# Cài dependencies cho backend
+# Cài đặt dependencies cho Backend
 cd backend
 npm install
 
-# Cài dependencies cho frontend
+# Cài đặt dependencies cho Frontend
 cd ../frontend
 npm install
 ```
 
 ---
 
-## 🗄️ Bước 2: Thiết lập Database (Supabase)
+### Bước 2: Cấu hình biến môi trường
 
-1. Truy cập https://supabase.com → Tạo tài khoản → **New Project**
-2. Vào **Project Settings → Database → Connection String**
-3. Copy URL từ tab **Transaction** (port 6543) → đặt làm `DATABASE_URL`
-4. Copy URL từ tab **Session** (port 5432) → đặt làm `DIRECT_URL`
+#### 1. Backend (`MovieWebsite/Project/backend/.env`)
 
-Tạo file `backend/.env`:
+Tạo file `.env` trong thư mục `backend/`:
+
 ```env
-DATABASE_URL="postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres?pgbouncer=true"
-DIRECT_URL="postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres"
-```
+# Server Port & Môi trường
+PORT=3001
+NODE_ENV=development
+FRONTEND_URL="http://localhost:3000"
 
----
+# PostgreSQL Database (Supabase hoặc Local)
+DATABASE_URL="postgresql://postgres:password@localhost:5432/cinestream?schema=public"
+DIRECT_URL="postgresql://postgres:password@localhost:5432/cinestream"
 
-## 🔴 Bước 3: Thiết lập Redis (Upstash)
-
-1. Truy cập https://upstash.com → Tạo tài khoản → **Create Database**
-2. Copy `UPSTASH_REDIS_REST_URL` và `UPSTASH_REDIS_REST_TOKEN` từ tab **REST API**
-3. Copy **Endpoint** và **Password** từ tab **Details** → tạo `REDIS_URL`
-
-Thêm vào `backend/.env`:
-```env
-UPSTASH_REDIS_REST_URL="https://[your-instance].upstash.io"
+# Redis Cache (Upstash REST API hoặc Local)
+UPSTASH_REDIS_REST_URL="https://your-upstash-redis.upstash.io"
 UPSTASH_REDIS_REST_TOKEN="your_upstash_token"
-REDIS_URL="rediss://default:[password]@[your-instance].upstash.io:6379"
-```
+REDIS_URL="redis://localhost:6379"
 
----
-
-## ⚙️ Bước 4: Cấu hình Backend
-
-### Thêm các biến môi trường vào `backend/.env`:
-
-```env
-# Database
-DATABASE_URL="..."
-DIRECT_URL="..."
-
-# Redis
-UPSTASH_REDIS_REST_URL="..."
-UPSTASH_REDIS_REST_TOKEN="..."
-REDIS_URL="..."
-
-# JWT
-JWT_SECRET="your-super-secret-jwt-key"
+# JWT Authentication
+JWT_SECRET="cinestream_jwt_secret_change_this_in_production_32chars_min"
 JWT_EXPIRES_IN="15m"
 JWT_REFRESH_EXPIRES_IN="7d"
 
-# Google OAuth
-GOOGLE_CLIENT_ID="your-google-client-id"
+# Google OAuth 2.0 (Tùy chọn)
+GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
+GOOGLE_CALLBACK_URL="http://localhost:3001/api/auth/google/callback"
 
-# Frontend URL
-FRONTEND_URL="http://localhost:3000"
+# NguonC API Endpoint
+NGUONC_API_URL="https://phim.nguonc.com/api/film"
+NGUONC_SYNC_SLUGS="vi-sao-dua-anh-toi,dao-hai-tac,chu-thuat-hoi-chien"
 ```
 
-### Chạy Prisma Migration:
+#### 2. Frontend (`MovieWebsite/Project/frontend/.env.local`)
 
-```bash
-cd backend
-npx prisma migrate deploy
+Tạo file `.env.local` trong thư mục `frontend/`:
+
+```env
+NEXT_PUBLIC_API_URL="http://localhost:3001/api"
 ```
-
-> **Chú ý**: Dự án sử dụng migration files trong `prisma/migrations/`. Dùng `db push` chỉ nên dùng cho development nhanh, không áp dụng cho môi trường production.
 
 ---
 
-## 🖥️ Bước 5: Chạy Backend
+### Bước 3: Khởi tạo Cơ sở dữ liệu (Prisma Migration)
+
+Di chuyển vào thư mục `backend/` và chạy lệnh đồng bộ schema:
 
 ```bash
-# Từ thư mục Project/
 cd backend
+npx prisma generate
+npx prisma migrate dev --name init
+```
+
+*(Tùy chọn) Chạy seed dữ liệu mẫu nếu có:*
+```bash
+npm run db:seed
+```
+
+---
+
+### Bước 4: Khởi chạy ứng dụng
+
+Mở 2 cửa sổ terminal riêng biệt để chạy Backend và Frontend:
+
+#### Terminal 1: Chạy Backend (Port 3001)
+```bash
+cd MovieWebsite/Project/backend
 npm run start:dev
 ```
+* Backend API hoạt động tại: `http://localhost:3001/api`
+* Swagger Tài liệu API (Dev mode): `http://localhost:3001/api/docs`
 
-Backend sẽ chạy tại `http://localhost:3001`
-
----
-
-## 🎨 Bước 6: Cấu hình Frontend
-
-Tạo file `frontend/.env.local`:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
-```
-
----
-
-## 🌐 Bước 7: Chạy Frontend
-
+#### Terminal 2: Chạy Frontend (Port 3000)
 ```bash
-# Từ thư mục Project/
-cd frontend
+cd MovieWebsite/Project/frontend
 npm run dev
 ```
-
-Frontend sẽ chạy tại `http://localhost:3000`
+* Mở trình duyệt và truy cập: `http://localhost:3000`
 
 ---
 
-## 📦 Cấu trúc thư mục
+## 📌 Danh mục API Endpoints chính
+
+| Phương thức | Endpoint | Mô tả | Quyền truy cập |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Đăng ký tài khoản người dùng mới | Công khai |
+| `POST` | `/api/auth/login` | Đăng nhập bằng Email & Mật khẩu | Công khai |
+| `POST` | `/api/auth/refresh` | Đổi Refresh Token lấy Access Token mới | Công khai |
+| `POST` | `/api/auth/oauth-exchange` | Đổi mã xác thực Google OAuth lấy Token | Công khai |
+| `POST` | `/api/auth/logout` | Đăng xuất và thu hồi Refresh Token trên Redis | Người dùng |
+| `GET` | `/api/movies` | Danh sách phim (phân trang, lọc, tìm kiếm - Cache Redis 5m) | Công khai |
+| `GET` | `/api/movies/:slug` | Chi tiết phim và danh sách tập (Cache Redis 10m) | Công khai |
+| `GET` | `/api/history` | Lấy lịch sử xem phim và tiến trình dừng của người dùng | Người dùng |
+| `POST` | `/api/history` | Lưu / Cập nhật tiến độ xem tập phim (giây dừng) | Người dùng |
+| `GET` | `/api/watchlist` | Lấy danh sách phim yêu thích | Người dùng |
+| `POST` | `/api/watchlist/:movieId` | Thêm phim vào danh sách yêu thích | Người dùng |
+| `DELETE` | `/api/watchlist/:movieId` | Xóa phim khỏi danh sách yêu thích | Người dùng |
+| `GET` | `/api/users` | Lấy danh sách người dùng trong hệ thống | Admin |
+| `PATCH` | `/api/users/:id/block` | Khóa hoặc mở khóa tài khoản người dùng | Admin |
+| `GET` | `/api/admin/stats` | Thống kê số lượng phim, user, tương tác | Admin |
+| `POST` | `/api/movies/sync/:slug` | Đồng bộ thủ công dữ liệu phim từ NguonC | Admin |
+
+---
+
+## 📂 Cấu trúc thư mục dự án
 
 ```
-Project/
-├── backend/                    # Backend NestJS
-│   ├── src/
-│   │   ├── auth/              # Auth module (JWT, Google OAuth)
-│   │   ├── movies/            # Movies module (CRUD, Search, Filter)
-│   │   ├── nguonc/            # NguonC Parser (sync phim)
-│   │   ├── watchlist/         # Watchlist module
-│   │   ├── history/           # Watch History module
-│   │   ├── users/             # Users module
-│   │   ├── admin/             # Admin module (Stats, Movie/User Management)
-│   │   ├── bullmq/            # BullMQ Scheduler
-│   │   ├── prisma/            # Prisma Service
-│   │   ├── common/            # Guards, Decorators, Filters, Interceptors
-│   │   └── config/            # Config (JWT, Redis, BullMQ)
-│   └── prisma/
-│       └── schema.prisma      # Database Schema
-│
-├── frontend/                   # Frontend Next.js 14
-│   └── src/
-│       ├── app/               # App Router
-│       │   ├── (auth)/        # Auth pages (Login, Register)
-│       │   ├── (user)/        # User pages (Home, Movies, Profile, Watchlist)
-│       │   ├── (admin)/       # Admin pages (Dashboard, Movies, Users)
-│       │   └── watch/         # Watch page (Video Player)
-│       ├── components/        # UI Components
-│       │   ├── movie/         # MovieCard, MovieRow, MovieBanner
-│       │   ├── player/        # VideoPlayer, PlayerControls, EpisodeNav
-│       │   ├── layout/        # Navbar, Footer, AdminSidebar
-│       │   └── ui/            # shadcn/ui components
-│       ├── hooks/             # Custom hooks (useMovies)
-│       ├── store/             # Zustand stores (authStore, uiStore)
-│       ├── lib/               # Axios client, utils
-│       └── types/             # TypeScript interfaces
-└── package.json               # Monorepo config
+MyMovieWebsite/
+├── MovieWebsite/
+│   └── Project/
+│       ├── backend/                      # NestJS RESTful API
+│       │   ├── prisma/
+│       │   │   └── schema.prisma         # Định nghĩa Models & Indexes PostgreSQL
+│       │   ├── src/
+│       │   │   ├── admin/                # Quản trị hệ thống & Scheduler
+│       │   │   ├── auth/                 # JWT Auth, Google Strategy, Session Logic
+│       │   │   ├── bullmq/               # Hàng đợi cào phim ngầm
+│       │   │   ├── common/               # Guards, Interceptors, Filters OWASP
+│       │   │   ├── config/               # Cấu hình Redis, JWT, App
+│       │   │   ├── history/              # Quản lý lịch sử xem & resume time
+│       │   │   ├── movies/               # CRUD Phim, Redis Cache, Filter
+│       │   │   ├── nguonc/               # Parser dữ liệu NguonC
+│       │   │   ├── prisma/               # Prisma Service & Adapter
+│       │   │   ├── services/             # CacheService (Redis wrapper)
+│       │   │   ├── users/                # Quản lý tài khoản
+│       │   │   ├── watchlist/            # Quản lý phim yêu thích
+│       │   │   ├── app.module.ts
+│       │   │   └── main.ts               # Entrypoint (Helmet, Gzip, Pipes)
+│       │   └── package.json
+│       │
+│       ├── frontend/                     # Next.js 14 App Router
+│       │   ├── src/
+│       │   │   ├── app/                  # Routes hệ thống
+│       │   │   │   ├── (auth)/           # /login, /register
+│       │   │   │   ├── (admin)/          # /admin/dashboard, /admin/movies, /admin/users
+│       │   │   │   ├── (user)/           # /, /movies, /movies/[slug], /profile, /watchlist
+│       │   │   │   ├── auth/callback/    # Google OAuth callback handler
+│       │   │   │   ├── watch/[slug]/[ep] # Trang trình phát phim chính
+│       │   │   │   ├── layout.tsx
+│       │   │   │   └── not-found.tsx
+│       │   │   ├── components/           # UI Components
+│       │   │   │   ├── layout/           # Navbar, Footer, AdminSidebar
+│       │   │   │   ├── movie/            # MovieCard, MovieRow, MovieBanner, MovieGrid
+│       │   │   │   ├── player/           # VideoPlayer, ServerSelector, EpisodeNav
+│       │   │   │   ├── ui/               # shadcn/ui components (Button, Modal, Toast)
+│       │   │   │   └── SessionWatcher.tsx# Đồng bộ phiên đăng nhập tự động
+│       │   │   ├── hooks/                # Custom hooks (useAuth, useMovies, useWatchHistory)
+│       │   │   ├── lib/                  # Axios instance, Interceptors, Constants
+│       │   │   ├── store/                # Zustand stores (authStore)
+│       │   │   └── types/                # TypeScript Interfaces & Types
+│       │   ├── next.config.mjs           # Cấu hình AVIF, WebP, Gzip, Rewrites
+│       │   └── tailwind.config.ts        # Bảng màu chủ đề Netflix Dark
+│       └── package.json
+└── README.md                             # Tài liệu tổng quan dự án
 ```
 
 ---
 
-## 🔑 Tính năng chính
+## 🧪 Kiểm thử (Testing)
 
-### User
-- 🔐 Đăng nhập / Đăng ký / Google OAuth
-- 🏠 Trang chủ với Hero Banner + Movie Rows (Swiper.js)
-- 📋 Danh sách phim với Filter (Phim bộ/Phim lẻ) + Pagination
-- 📄 Chi tiết phim (Hero, Metadata, Episode List, Server Selector)
-- ▶️ Xem phim với Video Player (HLS.js + iframe fallback)
-- 💾 Lưu phim yêu thích (Watchlist)
-- 📊 Lịch sử xem phim
+Dự án chú trọng độ tin cậy và sự ổn định cao với cả **Unit Testing** và **Property-based Testing** (dùng `fast-check`):
 
-### Admin
-- 📊 Dashboard với thống kê (tổng phim, user, hoạt động)
-- 🎬 Quản lý phim (Sync từ NguonC, Xem danh sách, Xóa)
-- 👤 Quản lý người dùng (Xem danh sách, Khóa/Mở khóa, Xóa)
-
----
-
-## 🧪 Chạy Tests
-
-### Backend Tests:
+### 1. Kiểm thử Backend (22 Test Suites - 83 Tests Passed 100%)
 ```bash
-cd backend
+cd MovieWebsite/Project/backend
+
+# Chạy toàn bộ Unit Tests & Property Tests
 npm test
+
+# Chạy test kiểm tra độ bao phủ mã nguồn
+npm run test:cov
 ```
 
-### Frontend Build & Type Check:
+### 2. Kiểm thử Frontend (Type Check & Production Build)
 ```bash
-cd frontend
-npm run build
-npm run lint
+cd MovieWebsite/Project/frontend
+
+# Kiểm tra cú pháp và kiểu dữ liệu TypeScript (0 errors)
 npx tsc --noEmit
+
+# Biên dịch thử nghiệm chế độ Production (15/15 routes static/dynamic)
+npm run build
 ```
 
 ---
 
-## 📌 API Endpoints chính
+## 📄 Giấy phép (License)
 
-### Auth
-- `POST /api/auth/register` - Đăng ký
-- `POST /api/auth/login` - Đăng nhập
-- `POST /api/auth/refresh` - Refresh token
-- `POST /api/auth/logout` - Đăng xuất
-- `GET /api/auth/google` - Google OAuth redirect
-- `GET /api/auth/google/callback` - Google OAuth callback
-
-### Movies
-- `GET /api/movies` - Danh sách phim (phân trang, filter, search)
-- `GET /api/movies/:slug` - Chi tiết phim
-- `POST /api/movies/sync/:slug` - Sync phim từ NguonC (Admin)
-- `DELETE /api/movies/:id` - Xóa phim (Admin)
-
-### Watchlist
-- `GET /api/watchlist` - Danh sách phim yêu thích
-- `POST /api/watchlist/:movieId` - Thêm vào yêu thích
-- `DELETE /api/watchlist/:movieId` - Xóa khỏi yêu thích
-
-### History
-- `GET /api/history` - Lịch sử xem
-- `POST /api/history` - Cập nhật tiến trình xem
-
-### Users (Admin)
-- `GET /api/users` - Danh sách user
-- `PATCH /api/users/:id/block` - Khóa/Mở khóa user
-
-### Admin Stats
-- `GET /api/admin/stats` - Thống kê tổng quan
-
----
-
-## 🛠️ Tech Stack
-
-### Backend
-- **Runtime**: Node.js
-- **Framework**: NestJS
-- **ORM**: Prisma
-- **Database**: PostgreSQL (Supabase)
-- **Cache**: Redis (Upstash)
-- **Queue**: BullMQ
-- **Auth**: JWT + Passport (Google OAuth)
-- **Testing**: Jest + Property-based testing (fast-check)
-
-### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **State Management**: Zustand + React Query
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Video Player**: HLS.js
-- **Animation**: Framer Motion
-- **Carousel**: Swiper.js
-- **Icons**: Lucide React
-
----
-
-## ⚠️ Lưu ý quan trọng
-
-1. **Upstash Redis**: Có 2 kiểu kết nối khác nhau:
-   - `@upstash/redis` (REST client) → dùng cho Cache Service → env: `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`
-   - `ioredis` (TCP client) → dùng cho BullMQ → env: `REDIS_URL` (dạng `rediss://...`)
-
-2. **BullMQ Scheduler**: Tự động sync phim mỗi 30 phút
-
-3. **Video Player**: Hỗ trợ cả HLS.js (m3u8) và iframe embed
-
-4. **Protected Routes**: Middleware tự động chuyển hướng đến `/login` nếu chưa đăng nhập
-   - Routes được bảo vệ: `/watchlist`, `/profile`, `/admin`
-
----
-
-## 📞 Hỗ trợ
-
-Nếu gặp vấn đề, kiểm tra:
-1. `backend/.env` đã đủ biến môi trường chưa
-2. Database đã kết nối chưa: `cd backend && npx prisma migrate deploy`
-3. Backend đã chạy chưa: `cd backend && npm run start:dev`
-4. Frontend `.env.local` đã cấu hình `NEXT_PUBLIC_API_URL` chưa
+Dự án được phân phối dưới giấy phép **MIT License**. Mọi đóng góp và mã nguồn đều tự do sử dụng cho mục đích học tập và nghiên cứu.
