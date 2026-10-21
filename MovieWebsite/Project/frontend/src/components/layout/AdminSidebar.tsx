@@ -4,7 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Film, Users, LogOut } from 'lucide-react';
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  onNavigate?: () => void;
+}
+
+export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
@@ -14,43 +18,53 @@ export default function AdminSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-netflix-card min-h-screen p-4 border-r border-netflix-hover">
-      <div className="mb-8">
-        <Link href="/admin" className="text-netflix-red text-2xl font-bold">
-          ADMIN
-        </Link>
+    <aside className="w-64 bg-netflix-card h-full min-h-screen p-4 border-r border-netflix-hover flex flex-col justify-between shadow-lg">
+      <div>
+        <div className="mb-8 px-2 pt-2">
+          <Link
+            href="/admin"
+            onClick={onNavigate}
+            className="text-netflix-red text-2xl font-bold tracking-wider"
+          >
+            ADMIN
+          </Link>
+        </div>
+        <nav className="space-y-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = item.exact
+              ? pathname === item.href || pathname === '/admin/dashboard'
+              : pathname?.startsWith(item.href);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                className={`flex items-center space-x-3 px-4 py-3 rounded transition-colors ${
+                  isActive
+                    ? 'bg-netflix-red text-white font-medium shadow-md'
+                    : 'text-netflix-text-secondary hover:bg-netflix-hover hover:text-white'
+                }`}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
       </div>
-      <nav className="space-y-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = item.exact
-            ? pathname === item.href || pathname === '/admin/dashboard'
-            : pathname?.startsWith(item.href);
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center space-x-3 px-4 py-3 rounded transition-colors ${
-                isActive
-                  ? 'bg-netflix-red text-white'
-                  : 'text-netflix-text-secondary hover:bg-netflix-hover hover:text-white'
-              }`}
-            >
-              <Icon size={20} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-
+      <div className="pt-4 border-t border-netflix-hover">
         <Link
           href="/"
-          className="flex items-center space-x-3 px-4 py-3 rounded text-netflix-text-secondary hover:bg-netflix-hover hover:text-white transition-colors mt-8"
+          onClick={onNavigate}
+          className="flex items-center space-x-3 px-4 py-3 rounded text-netflix-text-secondary hover:bg-netflix-hover hover:text-white transition-colors"
         >
           <LogOut size={20} />
           <span>Quay lại trang chủ</span>
         </Link>
-      </nav>
+      </div>
     </aside>
   );
 }

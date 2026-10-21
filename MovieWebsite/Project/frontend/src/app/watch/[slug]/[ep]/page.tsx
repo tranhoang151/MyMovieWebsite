@@ -49,7 +49,10 @@ export default function WatchPage() {
   const servers = movie?.episodes ? groupEpisodesByServer(movie.episodes) : [];
   const currentServerEpisodes = servers.find((s) => s.name === currentServer)?.episodes || [];
 
-  const currentEpData = movie?.episodes?.find((e) => e.slug === ep && e.serverName === currentServer);
+  const currentEpData =
+    movie?.episodes?.find((e) => e.slug === ep && e.serverName === currentServer) ||
+    movie?.episodes?.find((e) => e.slug === ep) ||
+    (movie?.episodes && movie.episodes.length > 0 ? movie.episodes[0] : null);
 
   const handleTimeUpdate = (time: number) => {
     if (!isAuthenticated || !movie) return;

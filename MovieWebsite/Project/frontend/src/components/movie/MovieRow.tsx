@@ -20,37 +20,45 @@ export default function MovieRow({ title, movies, viewAllHref }: MovieRowProps) 
   return (
     <div className="mb-8 px-4 md:px-12">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-white text-xl font-bold">{title}</h2>
+        <h2 className="text-white text-lg sm:text-xl font-bold">{title}</h2>
         {viewAllHref && (
-          <Link href={viewAllHref} className="text-netflix-green text-sm hover:underline">
-            Xem tất cả {'>'}
+          <Link href={viewAllHref} className="text-netflix-green text-xs sm:text-sm hover:underline">
+            Xem tất cả &gt;
           </Link>
         )}
       </div>
-      
+
       <Swiper
         modules={[Navigation]}
-        spaceBetween={8}
-        slidesPerView="auto"
+        spaceBetween={12}
+        slidesPerView={2.2}
         navigation
-        className="!px-0"
+        className="!px-0 overflow-visible"
         breakpoints={{
+          480: {
+            slidesPerView: 2.5,
+            spaceBetween: 12,
+          },
           640: {
-            slidesPerView: 3,
+            slidesPerView: 3.2,
+            spaceBetween: 14,
           },
           768: {
             slidesPerView: 4,
+            spaceBetween: 16,
           },
           1024: {
             slidesPerView: 5,
+            spaceBetween: 16,
           },
           1280: {
             slidesPerView: 6,
+            spaceBetween: 16,
           },
         }}
       >
         {movies.map((movie) => (
-          <SwiperSlide key={movie.id} className="!w-auto">
+          <SwiperSlide key={movie.id}>
             <MovieCard movie={movie} />
           </SwiperSlide>
         ))}

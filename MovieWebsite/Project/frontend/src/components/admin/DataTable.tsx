@@ -35,8 +35,8 @@ export default function DataTable<T extends { id: string | number }>({
   };
 
   return (
-    <div className="bg-netflix-card rounded-lg overflow-hidden">
-      <table className="w-full text-sm text-left">
+    <div className="bg-netflix-card rounded-lg overflow-x-auto border border-netflix-hover/50">
+      <table className="w-full text-sm text-left min-w-[640px]">
         <thead className="bg-netflix-hover text-netflix-text-secondary">
           <tr>
             {columns.map((col, i) => (

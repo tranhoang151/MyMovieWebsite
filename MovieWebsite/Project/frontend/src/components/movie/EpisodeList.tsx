@@ -50,8 +50,8 @@ export default function EpisodeList({ episodes, movieSlug, currentEp, currentSer
                 onClick={() => setActiveServer(server.name)}
                 className={
                   server.name === current
-                    ? 'bg-netflix-red hover:bg-netflix-red-hover'
-                    : 'border-netflix-hover text-white'
+                    ? 'bg-netflix-red hover:bg-netflix-red-hover text-white'
+                    : 'border-netflix-hover text-netflix-text-secondary hover:text-white'
                 }
               >
                 {server.name}
@@ -59,14 +59,15 @@ export default function EpisodeList({ episodes, movieSlug, currentEp, currentSer
             ))}
           </div>
 
-          <div className="grid grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
             {currentEpisodes.map((ep) => (
               <Link
                 key={ep.slug}
                 href={`/watch/${movieSlug}/${ep.slug}`}
-                className={`text-center py-2 rounded text-sm transition-colors ${
+                title={ep.name}
+                className={`text-center py-2 px-1 rounded text-xs sm:text-sm font-medium transition-colors truncate block ${
                   ep.slug === currentEp
-                    ? 'bg-netflix-red text-white'
+                    ? 'bg-netflix-red text-white shadow-md'
                     : 'bg-netflix-card text-netflix-text-secondary hover:bg-netflix-hover hover:text-white'
                 }`}
               >
