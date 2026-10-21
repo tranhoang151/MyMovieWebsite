@@ -92,7 +92,7 @@ export default function WatchPage() {
           onTimeUpdate={handleTimeUpdate}
         />
         <p className="mt-2 text-xs text-netflix-text-secondary">
-          💡 <em>Mẹo: Nếu trình phát yêu cầu cho phép quảng cáo, bạn vui lòng tạm dừng AdBlock / Brave Shields cho trang này rồi bấm &quot;Kiểm tra lại&quot; để tiếp tục xem phim.</em>
+          💡 <em>Mẹo: Nếu trình phát báo lỗi chặn quảng cáo hoặc khóa phiên do mở F12 (DevTools), vui lòng tạm dừng AdBlock, tắt F12 và mở lại video trong tab mới để tiếp tục xem.</em>
         </p>
         <div className="mt-4">
           <h1 className="text-xl font-bold">{movie.name}</h1>
