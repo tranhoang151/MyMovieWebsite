@@ -1,6 +1,19 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { ParsedMovie, NguonCMovieRaw, ParsedCategory, ParsedEpisode } from './nguonc.types';
 
+function slugify(text: string): string {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
 @Injectable()
 export class NguonCService {
   constructor() {}
@@ -27,25 +40,44 @@ export class NguonCService {
       );
     }
 
-    // Categories: movie.category is an object with numeric keys
+    // Categories: NguonC structure:
+    // { "1": { group: { id: "...", name: "Định dạng" }, list: [{ id: "...", name: "Phim lẻ" }] }, ... }
+    const categories: ParsedCategory[] = [];
     const categoriesRaw = movie.category || {};
     const categoriesValues = Object.values(categoriesRaw) as any[];
 
-    const categories: ParsedCategory[] = categoriesValues
-      .map((c) => {
-        if (!c) return null;
-        return {
-          nguoncId: String(c.id ?? ''),
-          slug: String(c.slug ?? '').trim(),
-          name: String(c.name ?? '').trim(),
-          group: String(c.group ?? '').trim(),
-        } as ParsedCategory;
-      })
-      .filter((c): c is ParsedCategory => c !== null);
+    for (const c of categoriesValues) {
+      if (!c) continue;
+      const groupName = (typeof c.group === 'object' ? c.group?.name : c.group) || '';
 
-    // Determine year from categories group if present
+      if (Array.isArray(c.list)) {
+        for (const item of c.list) {
+          if (!item) continue;
+          const name = String(item.name || '').trim();
+          if (!name) continue;
+          const slug = String(item.slug || slugify(name)).trim();
+          categories.push({
+            nguoncId: String(item.id || item.nguoncId || slug),
+            slug,
+            name,
+            group: String(groupName).trim(),
+          });
+        }
+      } else if (c.name) {
+        const name = String(c.name).trim();
+        const slug = String(c.slug || slugify(name)).trim();
+        categories.push({
+          nguoncId: String(c.id || c.nguoncId || slug),
+          slug,
+          name,
+          group: String(groupName).trim(),
+        });
+      }
+    }
+
+    // Determine year from categories group if present, or fallback to movie.year
     const yearCat = categories.find((c) => /năm/i.test(c.group || ''));
-    const year = yearCat ? yearCat.name : null;
+    const year = yearCat ? yearCat.name : (movie.year ? String(movie.year) : null);
 
     // Episodes mapping — defensive: support multiple structures (Array, { items: [...] }, { "0": {...} })
     const episodes: ParsedEpisode[] = [];
@@ -77,6 +109,21 @@ export class NguonCService {
       }
     } catch {}
 
+    // Calculate totalEpisodes accurately
+    const rawTotal = Number(movie.total_episodes ?? movie.totalEpisodes);
+    let totalEpisodes = isNaN(rawTotal) ? 0 : rawTotal;
+    const isSingle =
+      categories.some((c) => c.slug === 'phim-le' || /phim lẻ/i.test(c.name)) ||
+      /full/i.test(movie.current_episode ?? movie.currentEpisode ?? '') ||
+      totalEpisodes === 1 ||
+      totalEpisodes === -1;
+
+    if (isSingle && (totalEpisodes <= 0 || totalEpisodes === -1)) {
+      totalEpisodes = 1;
+    } else if (totalEpisodes <= 0 && episodes.length > 0) {
+      totalEpisodes = episodes.length;
+    }
+
     const parsed: ParsedMovie = {
       nguoncId: String(movie.id),
       slug: String(movie.slug),
@@ -90,13 +137,12 @@ export class NguonCService {
       director: movie.director ?? null,
       casts: movie.casts ?? null,
       time: movie.time ?? null,
-      totalEpisodes: Number(movie.total_episodes ?? movie.totalEpisodes ?? (episodes.length || 0)),
+      totalEpisodes,
       currentEpisode: movie.current_episode ?? movie.currentEpisode ?? null,
       status: (() => {
         const ce = (movie.current_episode ?? movie.currentEpisode ?? '') as string;
         if (!ce) return null;
         if (/hoàn hoàn|hoàn tất|full/i.test(ce)) return 'completed';
-        if (/full/i.test(ce)) return 'completed';
         return 'ongoing';
       })(),
       year,
