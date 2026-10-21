@@ -33,7 +33,7 @@ export interface Movie {
   createdAt: string;
   updatedAt: string;
   episodes?: Episode[];
-  categories?: Category[];
+  categories?: { category: Category }[] | Category[];
 }
 
 export interface Episode {
@@ -67,12 +67,14 @@ export interface WatchHistory {
   id: string;
   userId: string;
   movieId: string;
+  episodeId?: string;
   episodeSlug: string;
   serverName: string;
   progressSec: number;
   watchedAt: string;
   updatedAt: string;
   movie?: Movie;
+  episode?: Episode;
 }
 
 export interface ApiResponse<T> {

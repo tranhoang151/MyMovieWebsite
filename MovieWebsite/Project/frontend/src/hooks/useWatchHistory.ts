@@ -4,8 +4,9 @@ import { WatchHistory } from '@/types';
 import { API_ENDPOINTS, QUERY_KEYS } from '@/lib/constants';
 import { useAuthStore } from '@/store/authStore';
 
-interface SaveProgressDto {
-  movieId: string;
+export interface SaveProgressDto {
+  movieId?: string;
+  movieSlug: string;
   episodeSlug: string;
   serverName: string;
   progressSec: number;
@@ -34,9 +35,21 @@ export function useWatchHistory() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HISTORY] }),
   });
 
+  const deleteHistory = useMutation({
+    mutationFn: (id: string) => api.delete(`${API_ENDPOINTS.HISTORY}/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HISTORY] }),
+  });
+
+  const deleteMovieHistory = useMutation({
+    mutationFn: (movieSlug: string) => api.delete(`${API_ENDPOINTS.HISTORY}/movie/${movieSlug}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.HISTORY] }),
+  });
+
   return {
     history,
     isLoading,
     saveProgress: saveProgress.mutateAsync,
+    deleteHistory: deleteHistory.mutateAsync,
+    deleteMovieHistory: deleteMovieHistory.mutateAsync,
   };
 }

@@ -24,4 +24,9 @@ export class HistoryController {
   async deleteByMovie(@CurrentUser() user: { id: string }, @Param('slug') slug: string) {
     return this.history.deleteHistoryByMovie(user.id, slug);
   }
+
+  @Delete(':id')
+  async deleteById(@CurrentUser() user: { id: string }, @Param('id') id: string) {
+    return this.history.deleteHistoryById(user.id, id);
+  }
 }

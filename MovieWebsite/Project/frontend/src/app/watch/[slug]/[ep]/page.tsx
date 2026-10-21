@@ -1,26 +1,35 @@
 'use client';
 
-import { useMovie } from '@/hooks/useMovies';
-import { useParams } from 'next/navigation';
+import { Suspense, useEffect, useState, useRef } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useMovie } from '@/hooks/useMovies';
 import VideoPlayer from '@/components/player/VideoPlayer';
 import EpisodeNav from '@/components/player/EpisodeNav';
 import EpisodeList from '@/components/movie/EpisodeList';
 import ServerSelector from '@/components/player/ServerSelector';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useWatchHistory } from '@/hooks/useWatchHistory';
 import { Episode } from '@/types';
 
-export default function WatchPage() {
+function WatchContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const slug = params.slug as string;
   const ep = params.ep as string;
+
   const { data: movie, isLoading } = useMovie(slug);
   const { isAuthenticated } = useAuthStore();
-  const { saveProgress } = useWatchHistory();
+  const { history, saveProgress } = useWatchHistory();
   const [currentServer, setCurrentServer] = useState('');
+
+  // Determine initial resume time from URL (?t=...) or user's watch history
+  const urlTime = Number(searchParams?.get('t')) || 0;
+  const historyEntry = history?.find(
+    (h) => (h.movie?.slug === slug || h.movieId === movie?.id) && h.episodeSlug === ep,
+  );
+  const initialTime = urlTime > 0 ? urlTime : (historyEntry?.progressSec || 0);
 
   useEffect(() => {
     if (movie?.episodes) {
@@ -31,10 +40,13 @@ export default function WatchPage() {
       });
       const servers = Object.values(grouped);
       if (servers.length > 0) {
-        setCurrentServer(servers[0][0].serverName);
+        // If currentServer is not set or not in list, pick the first server
+        if (!currentServer || !grouped[currentServer]) {
+          setCurrentServer(servers[0][0].serverName);
+        }
       }
     }
-  }, [movie]);
+  }, [movie, currentServer]);
 
   const groupEpisodesByServer = (episodes?: Episode[]) => {
     if (!episodes) return [];
@@ -54,14 +66,42 @@ export default function WatchPage() {
     movie?.episodes?.find((e) => e.slug === ep) ||
     (movie?.episodes && movie.episodes.length > 0 ? movie.episodes[0] : null);
 
-  const handleTimeUpdate = (time: number) => {
-    if (!isAuthenticated || !movie) return;
+  const lastSavedSecRef = useRef<number>(-1);
+  const lastSavedTimestampRef = useRef<number>(0);
+
+  // Immediately record watch history on mount/episode change so it appears in profile
+  useEffect(() => {
+    if (!isAuthenticated || !movie?.slug || !currentEpData || !currentServer) return;
+
     saveProgress({
+      movieSlug: movie.slug,
       movieId: movie.id,
       episodeSlug: ep,
       serverName: currentServer,
-      progressSec: Math.floor(time),
+      progressSec: initialTime || 0,
     }).catch(() => {});
+  }, [isAuthenticated, movie?.slug, movie?.id, ep, currentServer, currentEpData, initialTime, saveProgress]);
+
+  // Throttled progress save during playback
+  const handleTimeUpdate = (time: number) => {
+    if (!isAuthenticated || !movie || !currentServer) return;
+    const currentSec = Math.floor(time);
+    const now = Date.now();
+
+    if (
+      Math.abs(currentSec - lastSavedSecRef.current) >= 5 &&
+      now - lastSavedTimestampRef.current >= 5000
+    ) {
+      lastSavedSecRef.current = currentSec;
+      lastSavedTimestampRef.current = now;
+      saveProgress({
+        movieId: movie.id,
+        movieSlug: movie.slug,
+        episodeSlug: ep,
+        serverName: currentServer,
+        progressSec: currentSec,
+      }).catch(() => {});
+    }
   };
 
   if (isLoading) {
@@ -76,7 +116,9 @@ export default function WatchPage() {
     return (
       <div className="min-h-screen bg-netflix-dark flex flex-col items-center justify-center text-white gap-4">
         <p>Không tìm thấy tập phim.</p>
-        <Link href={`/movies/${slug}`} className="text-netflix-red hover:underline">Quay lại trang phim</Link>
+        <Link href={`/movies/${slug}`} className="text-netflix-red hover:underline">
+          Quay lại trang phim
+        </Link>
       </div>
     );
   }
@@ -84,7 +126,10 @@ export default function WatchPage() {
   return (
     <div className="min-h-screen bg-netflix-dark text-white">
       <div className="p-4">
-        <Link href={`/movies/${slug}`} className="inline-flex items-center text-netflix-text-secondary hover:text-white transition-colors">
+        <Link
+          href={`/movies/${slug}`}
+          className="inline-flex items-center text-netflix-text-secondary hover:text-white transition-colors"
+        >
           <ArrowLeft size={20} className="mr-2" /> Quay lại
         </Link>
       </div>
@@ -92,6 +137,7 @@ export default function WatchPage() {
         <VideoPlayer
           m3u8Url={currentEpData.m3u8Url}
           embedUrl={currentEpData.embedUrl}
+          initialTime={initialTime}
           onTimeUpdate={handleTimeUpdate}
         />
         <p className="mt-2 text-xs text-netflix-text-secondary">
@@ -99,19 +145,44 @@ export default function WatchPage() {
         </p>
         <div className="mt-4">
           <h1 className="text-xl font-bold">{movie.name}</h1>
-          <p className="text-netflix-text-secondary text-sm mt-1">{currentEpData.name} — {currentServer}</p>
+          <p className="text-netflix-text-secondary text-sm mt-1">
+            {currentEpData.name} — {currentServer}
+          </p>
         </div>
         <ServerSelector
           servers={servers}
           currentServer={currentServer}
           onServerChange={setCurrentServer}
         />
-        <EpisodeNav slug={slug} currentEp={ep} episodes={currentServerEpisodes.map(e => ({ name: e.name, slug: e.slug }))} />
+        <EpisodeNav
+          slug={slug}
+          currentEp={ep}
+          episodes={currentServerEpisodes.map((e) => ({ name: e.name, slug: e.slug }))}
+        />
         <div className="mt-8 pb-12">
           <h2 className="text-lg font-bold mb-4">Danh sách tập</h2>
-          <EpisodeList episodes={movie.episodes || []} movieSlug={slug} currentEp={ep} currentServer={currentServer} />
+          <EpisodeList
+            episodes={movie.episodes || []}
+            movieSlug={slug}
+            currentEp={ep}
+            currentServer={currentServer}
+          />
         </div>
       </div>
     </div>
+  );
+}
+
+export default function WatchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-netflix-dark flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-netflix-red" />
+        </div>
+      }
+    >
+      <WatchContent />
+    </Suspense>
   );
 }

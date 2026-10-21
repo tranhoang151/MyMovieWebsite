@@ -1,9 +1,13 @@
-import { IsString, IsNotEmpty, IsInt, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsInt, Min, IsOptional } from 'class-validator';
 
 export class UpsertHistoryDto {
   @IsString()
-  @IsNotEmpty()
-  movieSlug: string;
+  @IsOptional()
+  movieSlug?: string;
+
+  @IsString()
+  @IsOptional()
+  movieId?: string;
 
   @IsString()
   @IsNotEmpty()
