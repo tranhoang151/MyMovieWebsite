@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
@@ -11,6 +13,17 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isAuthenticated } = useAuthStore();
+  const router = useRouter();
+
+  useEffect(() => {
+    const hasToken =
+      typeof window !== 'undefined' &&
+      (isAuthenticated || !!localStorage.getItem('accessToken'));
+    if (!hasToken) {
+      router.push('/login?redirect=/admin');
+    }
+  }, [isAuthenticated, router]);
 
   return (
     <div className="min-h-screen bg-netflix-dark text-white flex flex-col md:flex-row">
