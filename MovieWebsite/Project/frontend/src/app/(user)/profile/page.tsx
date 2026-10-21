@@ -1,13 +1,23 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useWatchHistory } from '@/hooks/useWatchHistory';
 import Link from 'next/link';
 import { Play } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const router = useRouter();
   const { history, isLoading } = useWatchHistory();
+
+  useEffect(() => {
+    const hasToken = typeof window !== 'undefined' && (isAuthenticated || !!localStorage.getItem('accessToken'));
+    if (!hasToken) {
+      router.push('/login?redirect=/profile');
+    }
+  }, [isAuthenticated, router]);
 
   if (!user) return null;
 

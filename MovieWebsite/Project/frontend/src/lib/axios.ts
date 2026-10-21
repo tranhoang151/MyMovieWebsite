@@ -32,7 +32,7 @@ api.interceptors.response.use(
           throw new Error('No refresh token');
         }
 
-        // Gọi endpoint refresh token (cần cấu hình đúng URL backend)
+        // Gọi endpoint refresh token
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/refresh`,
           { refreshToken }
@@ -50,11 +50,22 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // Nếu refresh thất bại, xóa token và redirect về login
+        // Nếu refresh thất bại, xóa token
         if (typeof window !== 'undefined') {
+          const hadToken = !!localStorage.getItem('accessToken') || !!localStorage.getItem('refreshToken');
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
-          window.location.href = '/login';
+
+          // Chỉ chuyển hướng đến /login nếu đang ở route được bảo vệ
+          const pathname = window.location.pathname;
+          const isProtectedRoute =
+            pathname.startsWith('/watchlist') ||
+            pathname.startsWith('/profile') ||
+            pathname.startsWith('/admin');
+
+          if (isProtectedRoute || (hadToken && !pathname.startsWith('/watch') && !pathname.startsWith('/movies') && pathname !== '/')) {
+            window.location.href = `/login?redirect=${encodeURIComponent(pathname)}`;
+          }
         }
         return Promise.reject(refreshError);
       }

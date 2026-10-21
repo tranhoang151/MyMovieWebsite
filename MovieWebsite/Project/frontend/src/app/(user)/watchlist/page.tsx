@@ -1,5 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore';
 import { useWatchlist } from '@/hooks/useWatchlist';
 import MovieCard from '@/components/movie/MovieCard';
 import MovieCardSkeleton from '@/components/movie/MovieCardSkeleton';
@@ -9,7 +12,16 @@ import Link from 'next/link';
 import { Movie } from '@/types';
 
 export default function WatchlistPage() {
+  const { isAuthenticated } = useAuthStore();
+  const router = useRouter();
   const { watchlist, isLoading, removeFromWatchlist } = useWatchlist();
+
+  useEffect(() => {
+    const hasToken = typeof window !== 'undefined' && (isAuthenticated || !!localStorage.getItem('accessToken'));
+    if (!hasToken) {
+      router.push('/login?redirect=/watchlist');
+    }
+  }, [isAuthenticated, router]);
 
   if (isLoading || !watchlist) {
     return (
