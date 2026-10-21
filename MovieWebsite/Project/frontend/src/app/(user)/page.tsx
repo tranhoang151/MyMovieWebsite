@@ -16,7 +16,7 @@ export default function HomePage() {
     <div className="min-h-screen">
       {heroMovie && <MovieBanner movie={heroMovie} />}
 
-      <div className="-mt-20 relative z-10">
+      <div className="relative z-10 mt-2 sm:-mt-8 md:-mt-16">
         {isLoadingLatest ? (
           <div className="flex space-x-2 px-4 md:px-12 mb-8">
             {Array.from({ length: 6 }).map((_, i) => (
