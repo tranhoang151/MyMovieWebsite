@@ -11,6 +11,12 @@ if (process.env.REDIS_URL) {
   connection = new Redis(process.env.REDIS_URL, {
     maxRetriesPerRequest: null, // BullMQ yêu cầu null
     enableReadyCheck: false,
+    family: 4, // Ép buộc sử dụng IPv4 để tránh timeout khi phân giải IPv6
+    connectTimeout: 10000, // Timeout 10s tránh treo ứng dụng lâu
+    keepAlive: 30000, // Giữ kết nối TCP với Upstash không bị đóng do idle
+    retryStrategy(times) {
+      return Math.min(times * 500, 2000);
+    },
   });
 
   connection.on('connect', () => {
