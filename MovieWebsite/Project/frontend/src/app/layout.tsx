@@ -7,6 +7,17 @@ import Providers from "@/components/Providers";
 const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+  fallback: [
+    "system-ui",
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "Segoe UI",
+    "Roboto",
+    "Helvetica Neue",
+    "Arial",
+    "sans-serif",
+  ],
 });
 
 export const metadata: Metadata = {
@@ -21,12 +32,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={cn("font-sans dark", outfit.variable)}>
-      <body
-        className={`antialiased bg-netflix-dark text-white`}
-      >
-        <Providers>
-          {children}
-        </Providers>
+      <body className="antialiased bg-netflix-dark text-white">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
