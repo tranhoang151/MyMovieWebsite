@@ -34,14 +34,14 @@ flowchart TD
     
     subgraph Frontend["Frontend (Next.js 14 App Router - Port 3000)"]
         UI["Tailwind CSS + Framer Motion"]
-        State["Zustand + React Query (Cache 5m)"]
+        State["Zustand + React Query"]
         Player["Video Player (HLS.js / Iframe Fallback)"]
-        Watcher["SessionWatcher (Kiểm tra hạn 7 ngày)"]
+        Watcher["SessionWatcher (Kiểm tra phiên 7 ngày)"]
     end
 
     subgraph Backend["Backend (NestJS 11 - Port 3001)"]
         Guard["Helmet + CORS + ThrottlerGuard (Rate Limit)"]
-        AuthModule["Auth Service (JWT + Refresh Token + Google OAuth)"]
+        AuthModule["Auth Service (JWT + Google OAuth)"]
         MovieModule["Movies Service (Search, Filter, Pagination)"]
         HistoryModule["Watch History & Watchlist"]
         BullMQ["BullMQ Worker (Auto Sync Cronjob)"]
@@ -49,20 +49,20 @@ flowchart TD
     end
 
     subgraph Storage["Data & Cache Layer"]
-        Redis[("Redis (Upstash / Local)\n- Token Rotation\n- Movie List / Detail Cache")]
-        Postgres[("PostgreSQL (Supabase / Local)\n- Movies, Episodes, Categories\n- Users, Watchlist, WatchHistory")]
+        Redis[("Redis Cache & Token Storage")]
+        Postgres[("PostgreSQL Database")]
     end
 
     subgraph CDN["External Video CDN"]
-        NguonC["NguonC Streaming Server (HLS .m3u8 / Iframe)"]
+        NguonC["NguonC Streaming Server (HLS m3u8 / Iframe)"]
     end
 
     User <--> Frontend
-    Frontend <-->|REST API + Bearer Token| Backend
-    Backend <-->|Read / Write Cache| Redis
-    Backend <-->|Prisma ORM (Indexes)| Postgres
-    Backend <-->|Cào dữ liệu phim| NguonC
-    Player -.->|Stream Video Trực Tiếp| NguonC
+    Frontend <-->|"REST API + Bearer Token"| Backend
+    Backend <-->|"Read / Write Cache"| Redis
+    Backend <-->|"Prisma ORM Query"| Postgres
+    Backend <-->|"Cào dữ liệu phim"| NguonC
+    Player -.->|"Stream Video Trực Tiếp"| NguonC
 ```
 
 ---
