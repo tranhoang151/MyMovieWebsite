@@ -3,13 +3,19 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuthStore } from '@/store/authStore';
-import { Search, User, LogOut, ListVideo, LayoutDashboard } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Search, User, LogOut, ListVideo, LayoutDashboard, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
+  const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [scrolled, setScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,6 +24,32 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        if (!searchQuery.trim()) {
+          setIsSearchOpen(false);
+        }
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchQuery]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = searchQuery.trim();
+    if (query) {
+      router.push(`/movies?search=${encodeURIComponent(query)}`);
+    }
+  };
 
   return (
     <nav
@@ -48,10 +80,59 @@ export default function Navbar() {
         </div>
 
         {/* Right Side */}
-        <div className="flex items-center space-x-4">
-          <button className="text-white hover:text-netflix-text-secondary transition-colors">
-            <Search size={20} />
-          </button>
+        <div className="flex items-center space-x-3 md:space-x-4">
+          <div ref={searchContainerRef} className="relative flex items-center">
+            {isSearchOpen ? (
+              <form
+                onSubmit={handleSearchSubmit}
+                className="flex items-center bg-black/80 border border-netflix-hover rounded-full px-2.5 sm:px-3 py-1 transition-all w-36 xs:w-48 sm:w-60 md:w-64 shadow-md"
+              >
+                <button
+                  type="submit"
+                  className="text-netflix-text-secondary hover:text-white mr-1.5 flex-shrink-0"
+                  title="Tìm kiếm"
+                >
+                  <Search size={16} />
+                </button>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setIsSearchOpen(false);
+                    }
+                  }}
+                  placeholder="Tìm kiếm phim..."
+                  className="bg-transparent text-white text-xs sm:text-sm focus:outline-none w-full placeholder:text-netflix-text-secondary"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (searchQuery) {
+                      setSearchQuery('');
+                      searchInputRef.current?.focus();
+                    } else {
+                      setIsSearchOpen(false);
+                    }
+                  }}
+                  className="text-netflix-text-secondary hover:text-white ml-1 flex-shrink-0"
+                  title={searchQuery ? 'Xóa nội dung' : 'Đóng tìm kiếm'}
+                >
+                  <X size={15} />
+                </button>
+              </form>
+            ) : (
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="text-white hover:text-netflix-text-secondary transition-colors p-1"
+                title="Tìm kiếm phim"
+              >
+                <Search size={20} />
+              </button>
+            )}
+          </div>
           
           {isAuthenticated ? (
             <div className="relative">

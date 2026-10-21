@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import { Movie, PaginatedResponse } from '@/types';
 
-export function useMovies(params?: { page?: number; limit?: number; type?: string }) {
+export function useMovies(params?: { page?: number; limit?: number; type?: string; search?: string }) {
   return useQuery({
     queryKey: ['movies', params],
     queryFn: async () => {

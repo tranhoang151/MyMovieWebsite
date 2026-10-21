@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useMovies } from '@/hooks/useMovies';
 import MovieGrid from '@/components/movie/MovieGrid';
 import { Button } from '@/components/ui/button';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { Search, X } from 'lucide-react';
 
 export default function MoviesPage() {
   return (
@@ -18,10 +19,22 @@ function MoviesPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
-  const [type, setType] = useState(searchParams.get('type') || '');
+  const search = searchParams.get('search') || '';
+  const type = searchParams.get('type') || '';
+  const page = Number(searchParams.get('page')) || 1;
 
-  const { data, isLoading } = useMovies({ page, limit: 24, type: type || undefined });
+  const [inputVal, setInputVal] = useState(search);
+
+  useEffect(() => {
+    setInputVal(search);
+  }, [search]);
+
+  const { data, isLoading } = useMovies({
+    page,
+    limit: 24,
+    type: type || undefined,
+    search: search || undefined,
+  });
 
   const handleFilterChange = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -32,21 +45,71 @@ function MoviesPageInner() {
     }
     params.set('page', '1');
     router.push(`/movies?${params.toString()}`);
-
-    if (key === 'type') setType(value);
-    setPage(1);
   };
 
   const handlePageChange = (newPage: number) => {
-    setPage(newPage);
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', newPage.toString());
     router.push(`/movies?${params.toString()}`);
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleFilterChange('search', inputVal.trim());
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 md:px-12">
-      <h1 className="text-3xl font-bold text-white mb-8">Danh sách phim</h1>
+      {/* Title & Search bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-white">
+            {search ? `Kết quả tìm kiếm cho: "${search}"` : 'Danh sách phim'}
+          </h1>
+          {search && (
+            <p className="text-netflix-text-secondary text-sm mt-1">
+              Tìm thấy {data?.total ?? 0} phim phù hợp
+            </p>
+          )}
+        </div>
+
+        {/* Search input on page */}
+        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 max-w-md w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-netflix-text-secondary pointer-events-none" />
+            <input
+              type="text"
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              placeholder="Tìm kiếm phim..."
+              className="w-full bg-netflix-card border border-netflix-hover rounded pl-9 pr-3 py-1.5 text-sm text-white placeholder:text-netflix-text-secondary focus:outline-none focus:border-white transition-colors"
+            />
+          </div>
+          <Button
+            type="submit"
+            size="sm"
+            className="bg-netflix-red hover:bg-netflix-red-hover text-white shrink-0"
+          >
+            Tìm
+          </Button>
+          {search && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setInputVal('');
+                handleFilterChange('search', '');
+              }}
+              className="border-netflix-hover text-netflix-text-secondary hover:text-white shrink-0"
+              title="Xóa tìm kiếm"
+            >
+              <X size={16} className="mr-1" />
+              Xóa
+            </Button>
+          )}
+        </form>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-8">
