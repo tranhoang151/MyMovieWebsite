@@ -1,16 +1,23 @@
-import 'dotenv/config'; // ponytail: load env before module graph, otherwise ConfigService arrives too late for top-level process.env reads
+import 'dotenv/config'; // load env before module graph
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe, Logger, INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import compression from 'compression';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import express, { Express } from 'express';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { CacheService } from './services/cache.service';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+const server: Express = express();
+let nestApp: INestApplication | null = null;
+let initPromise: Promise<INestApplication> | null = null;
+
+export async function bootstrapNestApp(expressInstance: Express): Promise<INestApplication> {
+  const adapter = new ExpressAdapter(expressInstance);
+  const app = await NestFactory.create(AppModule, adapter);
 
   // Security Headers via Helmet (OWASP A05)
   app.use(
@@ -32,9 +39,9 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      // Cho phép requests không có origin (như curl, postman, mobile app)
+      // Cho phép requests không có origin (như curl, postman, server-to-server)
       if (!origin) return callback(null, true);
-      // Cho phép các origin được chỉ định, domain *.vercel.app và localhost
+      // Cho phép frontend url, mọi domain *.vercel.app và localhost
       if (
         allowedOrigins.includes(origin) ||
         origin.endsWith('.vercel.app') ||
@@ -65,9 +72,7 @@ async function bootstrap() {
   // Global response transformer
   app.useGlobalInterceptors(new TransformResponseInterceptor());
 
-  const port = process.env.PORT ?? 3001;
-
-  // Swagger UI (dev only — OWASP A05: disable in production)
+  // Swagger UI (dev only)
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('CineStream API')
@@ -93,10 +98,38 @@ async function bootstrap() {
     Logger.warn(`Redis startup verification skipped: ${err instanceof Error ? err.message : String(err)}`, 'Redis');
   }
 
-  await app.listen(port);
-  console.log(`🚀 Backend running on http://localhost:${port}`);
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`📚 Swagger UI: http://localhost:${port}/api/docs`);
-  }
+  await app.init();
+  return app;
 }
-bootstrap();
+
+async function ensureAppInitialized(): Promise<INestApplication> {
+  if (nestApp) return nestApp;
+  if (!initPromise) {
+    initPromise = bootstrapNestApp(server).then((app) => {
+      nestApp = app;
+      return app;
+    });
+  }
+  return initPromise;
+}
+
+// 1. Export default handler cho Vercel Serverless Function invocations
+export default async function handler(req: any, res: any) {
+  await ensureAppInitialized();
+  return server(req, res);
+}
+
+// 2. Lắng nghe HTTP port cho cả local development và long-running container service
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
+ensureAppInitialized()
+  .then(() => {
+    server.listen(port, () => {
+      console.log(`🚀 Backend running on http://localhost:${port}`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`📚 Swagger UI: http://localhost:${port}/api/docs`);
+      }
+    });
+  })
+  .catch((err) => {
+    console.error('❌ Failed to initialize NestJS application:', err);
+  });
