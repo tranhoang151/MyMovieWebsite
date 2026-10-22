@@ -5,7 +5,13 @@ import { Redis } from '@upstash/redis';
  * Kết nối qua REST API (không cần TCP socket).
  * Env vars: UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN
  */
+const rawUrl = process.env.UPSTASH_REDIS_REST_URL || '';
+const rawToken = process.env.UPSTASH_REDIS_REST_TOKEN || '';
+
+const url = rawUrl.trim().replace(/^["']|["']$/g, '');
+const token = rawToken.trim().replace(/^["']|["']$/g, '');
+
 export const redisClient = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  url: url || 'https://placeholder.upstash.io',
+  token: token || 'placeholder',
 });

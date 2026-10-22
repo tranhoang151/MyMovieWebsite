@@ -32,9 +32,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // Log unexpected errors
     console.error('Unhandled exception:', exception);
 
+    const errorMessage =
+      exception instanceof Error ? exception.message : String(exception);
+
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       success: false,
       error: ['Lỗi server nội bộ'],
+      message: errorMessage,
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
     });
   }
