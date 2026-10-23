@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@nestjs/common';
+import { Injectable, Optional, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../services/cache.service';
 import { QueryMoviesDto } from './dto/query-movies.dto';
@@ -81,7 +81,7 @@ export class MoviesService {
         include: {
           episodes: {
             take: 1,
-            select: { slug: true, name: true },
+            select: { slug: true, name: true, views: true },
           },
           categories: { include: { category: true } },
         },
@@ -90,7 +90,7 @@ export class MoviesService {
     ]);
 
     const page = Math.floor(skip / limit) + 1;
-    const totalPages = Math.ceil(total / limit) || 1;
+    const totalPages = Math.ceil(total / limit);
 
     const result = {
       items,
@@ -132,6 +132,109 @@ export class MoviesService {
     }
 
     return movie;
+  }
+
+  /**
+   * Ghi nhận lượt xem cho tập phim và đồng thời tăng tổng lượt xem của bộ phim.
+   * Chống spam view ảo bằng Redis cache lock (15 phút cooldown cho mỗi IP/user trên mỗi tập).
+   */
+  async incrementView(
+    slug: string,
+    episodeSlug?: string,
+    serverName?: string,
+    clientIp?: string,
+    userId?: string,
+  ) {
+    const movie = await this.prisma.movie.findUnique({
+      where: { slug },
+      include: {
+        episodes: {
+          orderBy: { sortOrder: 'asc' },
+        },
+      },
+    });
+
+    if (!movie) {
+      throw new NotFoundException('Phim không tồn tại');
+    }
+
+    // Tìm tập phim tương ứng
+    let targetEpisode = episodeSlug
+      ? movie.episodes.find(
+          (e) =>
+            e.slug === episodeSlug &&
+            (!serverName || e.serverName === serverName),
+        ) || movie.episodes.find((e) => e.slug === episodeSlug)
+      : movie.episodes[0];
+
+    // Fallback về tập đầu tiên nếu có
+    if (!targetEpisode && movie.episodes.length > 0) {
+      targetEpisode = movie.episodes[0];
+    }
+
+    // Nếu phim chưa có tập nào trong DB, chỉ tăng view của bộ phim
+    if (!targetEpisode) {
+      const updatedMovie = await this.prisma.movie.update({
+        where: { id: movie.id },
+        data: { views: { increment: 1 } },
+        select: { id: true, views: true },
+      });
+
+      if (this.cacheService) {
+        await this.cacheService.del(`movie:detail:${slug}`);
+        await this.cacheService.delPattern('movies:list:*');
+      }
+
+      return {
+        recorded: true,
+        episodeViews: 0,
+        movieViews: updatedMovie.views,
+      };
+    }
+
+    // Kiểm tra chống spam view bằng Redis (15 phút cooldown)
+    const identifier = userId || clientIp || 'anon';
+    const lockKey = `view_lock:${identifier}:${movie.id}:${targetEpisode.slug}`;
+
+    if (this.cacheService) {
+      const isLocked = await this.cacheService.get(lockKey);
+      if (isLocked) {
+        return {
+          recorded: false,
+          message: 'Lượt xem đã được ghi nhận gần đây (cooldown)',
+          episodeViews: targetEpisode.views,
+          movieViews: movie.views,
+        };
+      }
+      // Ghi lock 15 phút (900s)
+      await this.cacheService.set(lockKey, '1', 900);
+    }
+
+    // Transaction tăng đồng thời cả view của tập lẫn tổng view của bộ phim
+    const [updatedEpisode, updatedMovie] = await this.prisma.$transaction([
+      this.prisma.episode.update({
+        where: { id: targetEpisode.id },
+        data: { views: { increment: 1 } },
+        select: { id: true, views: true },
+      }),
+      this.prisma.movie.update({
+        where: { id: movie.id },
+        data: { views: { increment: 1 } },
+        select: { id: true, views: true },
+      }),
+    ]);
+
+    // Xóa cache chi tiết và danh sách phim để cập nhật số lượt xem mới
+    if (this.cacheService) {
+      await this.cacheService.del(`movie:detail:${slug}`);
+      await this.cacheService.delPattern('movies:list:*');
+    }
+
+    return {
+      recorded: true,
+      episodeViews: updatedEpisode.views,
+      movieViews: updatedMovie.views,
+    };
   }
 
   // Minimal upsert wrapper used by admin import flows

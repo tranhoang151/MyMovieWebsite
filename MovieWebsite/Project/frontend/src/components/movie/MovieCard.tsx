@@ -4,7 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Movie } from '@/types';
-import { Play, Plus } from 'lucide-react';
+import { Eye, Play, Plus } from 'lucide-react';
+import { formatViews } from '@/lib/utils';
 
 interface MovieCardProps {
   movie: Movie;
@@ -26,6 +27,14 @@ export default function MovieCard({ movie }: MovieCardProps) {
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
+        {/* View Count Top-Right Badge */}
+        {typeof movie.views === 'number' && (
+          <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] text-white/90 font-medium flex items-center gap-1 z-10 border border-white/10 shadow">
+            <Eye size={10} className="text-netflix-red" />
+            <span>{formatViews(movie.views)}</span>
+          </div>
+        )}
+
         {/* Hover Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
           <h3 className="text-white text-xs sm:text-sm font-semibold line-clamp-2 mb-1">
@@ -40,6 +49,12 @@ export default function MovieCard({ movie }: MovieCardProps) {
             )}
             {movie.language && (
               <span className="truncate max-w-[80px]">{movie.language}</span>
+            )}
+            {typeof movie.views === 'number' && (
+              <span className="flex items-center gap-0.5 text-zinc-300 ml-auto">
+                <Eye size={10} />
+                {formatViews(movie.views)}
+              </span>
             )}
           </div>
           <div className="flex items-center space-x-2">

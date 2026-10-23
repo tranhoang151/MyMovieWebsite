@@ -54,6 +54,7 @@ model Movie {
   currentEpisode  String?            // "Hoàn tất (24/24)" | "FULL" | "Tập 12"
   status          String?            // "ongoing" | "completed" — suy ra từ current_episode
   year            String?            // từ category group "Năm"
+  views           Int       @default(0)
   isActive        Boolean   @default(true)
   nguoncCreatedAt DateTime?          // movie.created
   lastSyncedAt    DateTime?          // movie.modified
@@ -66,6 +67,7 @@ model Movie {
   history    WatchHistory[]
 
   @@index([isActive, createdAt(sort: Desc)])
+  @@index([views(sort: Desc)])
   @@index([status])
   @@index([year])
   @@map("movies")
@@ -80,6 +82,7 @@ model Episode {
   embedUrl   String?
   m3u8Url    String?
   sortOrder  Int     @default(0)
+  views      Int     @default(0)
 
   movie   Movie        @relation(fields: [movieId], references: [id], onDelete: Cascade)
   history WatchHistory[]

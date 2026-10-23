@@ -27,6 +27,7 @@ export interface Movie {
   currentEpisode?: string;
   status?: string;
   year?: string | null;
+  views?: number;
   isActive: boolean;
   nguoncCreatedAt?: string;
   lastSyncedAt?: string;
@@ -45,6 +46,7 @@ export interface Episode {
   embedUrl?: string;
   m3u8Url?: string;
   sortOrder: number;
+  views?: number;
 }
 
 export interface Category {

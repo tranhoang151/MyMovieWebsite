@@ -3,17 +3,18 @@
 import { Suspense, useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useMovie } from '@/hooks/useMovies';
+import { useMovie, useRecordView } from '@/hooks/useMovies';
 import VideoPlayer from '@/components/player/VideoPlayer';
 import EpisodeNav from '@/components/player/EpisodeNav';
 import EpisodeList from '@/components/movie/EpisodeList';
 import ServerSelector from '@/components/player/ServerSelector';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useWatchHistory } from '@/hooks/useWatchHistory';
 import { Episode } from '@/types';
+import { formatViews } from '@/lib/utils';
 
 function WatchContent() {
   const params = useParams();
@@ -70,6 +71,23 @@ function WatchContent() {
 
   const lastSavedSecRef = useRef<number>(-1);
   const lastSavedTimestampRef = useRef<number>(0);
+
+  const recordView = useRecordView();
+  const recordedRef = useRef<string>('');
+
+  // Automatically record view when user begins watching this episode
+  useEffect(() => {
+    if (!slug || !ep || !currentEpData) return;
+    const key = `${slug}:${ep}`;
+    if (recordedRef.current !== key) {
+      recordedRef.current = key;
+      recordView.mutate({
+        slug,
+        episodeSlug: ep,
+        serverName: currentEpData.serverName || currentServer || undefined,
+      });
+    }
+  }, [slug, ep, currentEpData, currentServer, recordView]);
 
   // Immediately record watch history on mount/episode change so it appears in profile
   useEffect(() => {
@@ -156,11 +174,33 @@ function WatchContent() {
           <p className="mt-2 text-xs text-netflix-text-secondary">
             💡 <em>Mẹo: Nếu trình phát báo lỗi chặn quảng cáo hoặc khóa phiên do mở F12 (DevTools), vui lòng tạm dừng AdBlock, tắt F12 và mở lại video trong tab mới để tiếp tục xem.</em>
           </p>
-          <div className="mt-4">
-            <h1 className="text-xl md:text-2xl font-bold">{movie.name}</h1>
-            <p className="text-netflix-text-secondary text-sm mt-1">
-              {currentEpData.name} — {currentServer}
-            </p>
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold">{movie.name}</h1>
+              <p className="text-netflix-text-secondary text-sm mt-1">
+                {currentEpData.name} — {currentServer}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <div
+                className="flex items-center gap-1.5 bg-netflix-card/80 border border-netflix-hover/60 px-3 py-1.5 rounded-full"
+                title={`${currentEpData.views || 0} lượt xem tập này`}
+              >
+                <Eye className="w-4 h-4 text-netflix-red" />
+                <span className="text-netflix-text-secondary text-xs sm:text-sm">
+                  Tập: <strong className="text-white font-semibold">{formatViews(currentEpData.views)}</strong>
+                </span>
+              </div>
+              <div
+                className="flex items-center gap-1.5 bg-netflix-card/80 border border-netflix-hover/60 px-3 py-1.5 rounded-full"
+                title={`${movie.views || 0} tổng lượt xem phim`}
+              >
+                <Eye className="w-4 h-4 text-blue-400" />
+                <span className="text-netflix-text-secondary text-xs sm:text-sm">
+                  Tổng phim: <strong className="text-white font-semibold">{formatViews(movie.views)}</strong>
+                </span>
+              </div>
+            </div>
           </div>
           <ServerSelector
             servers={servers}

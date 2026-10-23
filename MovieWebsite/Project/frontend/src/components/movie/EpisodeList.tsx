@@ -4,6 +4,8 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Episode } from '@/types';
+import { Eye } from 'lucide-react';
+import { formatViews } from '@/lib/utils';
 
 interface EpisodeListProps {
   episodes: Episode[];
@@ -64,14 +66,18 @@ export default function EpisodeList({ episodes, movieSlug, currentEp, currentSer
               <Link
                 key={ep.slug}
                 href={`/watch/${movieSlug}/${ep.slug}`}
-                title={ep.name}
-                className={`text-center py-2 px-1 rounded text-xs sm:text-sm font-medium transition-colors truncate block ${
+                title={`${ep.name} - ${formatViews(ep.views)} lượt xem`}
+                className={`text-center py-2 px-1 rounded text-xs sm:text-sm font-medium transition-colors block ${
                   ep.slug === currentEp
                     ? 'bg-netflix-red text-white shadow-md'
                     : 'bg-netflix-card text-netflix-text-secondary hover:bg-netflix-hover hover:text-white'
                 }`}
               >
-                {ep.name}
+                <div className="truncate">{ep.name}</div>
+                <div className="text-[10px] opacity-80 flex items-center justify-center gap-0.5 mt-0.5">
+                  <Eye className="w-2.5 h-2.5 shrink-0" />
+                  <span>{formatViews(ep.views)}</span>
+                </div>
               </Link>
             ))}
           </div>

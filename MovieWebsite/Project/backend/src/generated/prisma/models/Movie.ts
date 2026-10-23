@@ -28,10 +28,12 @@ export type AggregateMovie = {
 
 export type MovieAvgAggregateOutputType = {
   totalEpisodes: number | null
+  views: number | null
 }
 
 export type MovieSumAggregateOutputType = {
   totalEpisodes: number | null
+  views: number | null
 }
 
 export type MovieMinAggregateOutputType = {
@@ -52,6 +54,7 @@ export type MovieMinAggregateOutputType = {
   currentEpisode: string | null
   status: string | null
   year: string | null
+  views: number | null
   isActive: boolean | null
   nguoncCreatedAt: Date | null
   lastSyncedAt: Date | null
@@ -77,6 +80,7 @@ export type MovieMaxAggregateOutputType = {
   currentEpisode: string | null
   status: string | null
   year: string | null
+  views: number | null
   isActive: boolean | null
   nguoncCreatedAt: Date | null
   lastSyncedAt: Date | null
@@ -102,6 +106,7 @@ export type MovieCountAggregateOutputType = {
   currentEpisode: number
   status: number
   year: number
+  views: number
   isActive: number
   nguoncCreatedAt: number
   lastSyncedAt: number
@@ -113,10 +118,12 @@ export type MovieCountAggregateOutputType = {
 
 export type MovieAvgAggregateInputType = {
   totalEpisodes?: true
+  views?: true
 }
 
 export type MovieSumAggregateInputType = {
   totalEpisodes?: true
+  views?: true
 }
 
 export type MovieMinAggregateInputType = {
@@ -137,6 +144,7 @@ export type MovieMinAggregateInputType = {
   currentEpisode?: true
   status?: true
   year?: true
+  views?: true
   isActive?: true
   nguoncCreatedAt?: true
   lastSyncedAt?: true
@@ -162,6 +170,7 @@ export type MovieMaxAggregateInputType = {
   currentEpisode?: true
   status?: true
   year?: true
+  views?: true
   isActive?: true
   nguoncCreatedAt?: true
   lastSyncedAt?: true
@@ -187,6 +196,7 @@ export type MovieCountAggregateInputType = {
   currentEpisode?: true
   status?: true
   year?: true
+  views?: true
   isActive?: true
   nguoncCreatedAt?: true
   lastSyncedAt?: true
@@ -299,6 +309,7 @@ export type MovieGroupByOutputType = {
   currentEpisode: string | null
   status: string | null
   year: string | null
+  views: number
   isActive: boolean
   nguoncCreatedAt: Date | null
   lastSyncedAt: Date | null
@@ -347,6 +358,7 @@ export type MovieWhereInput = {
   currentEpisode?: Prisma.StringNullableFilter<"Movie"> | string | null
   status?: Prisma.StringNullableFilter<"Movie"> | string | null
   year?: Prisma.StringNullableFilter<"Movie"> | string | null
+  views?: Prisma.IntFilter<"Movie"> | number
   isActive?: Prisma.BoolFilter<"Movie"> | boolean
   nguoncCreatedAt?: Prisma.DateTimeNullableFilter<"Movie"> | Date | string | null
   lastSyncedAt?: Prisma.DateTimeNullableFilter<"Movie"> | Date | string | null
@@ -376,6 +388,7 @@ export type MovieOrderByWithRelationInput = {
   currentEpisode?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrderInput | Prisma.SortOrder
   year?: Prisma.SortOrderInput | Prisma.SortOrder
+  views?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   nguoncCreatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -408,6 +421,7 @@ export type MovieWhereUniqueInput = Prisma.AtLeast<{
   currentEpisode?: Prisma.StringNullableFilter<"Movie"> | string | null
   status?: Prisma.StringNullableFilter<"Movie"> | string | null
   year?: Prisma.StringNullableFilter<"Movie"> | string | null
+  views?: Prisma.IntFilter<"Movie"> | number
   isActive?: Prisma.BoolFilter<"Movie"> | boolean
   nguoncCreatedAt?: Prisma.DateTimeNullableFilter<"Movie"> | Date | string | null
   lastSyncedAt?: Prisma.DateTimeNullableFilter<"Movie"> | Date | string | null
@@ -437,6 +451,7 @@ export type MovieOrderByWithAggregationInput = {
   currentEpisode?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrderInput | Prisma.SortOrder
   year?: Prisma.SortOrderInput | Prisma.SortOrder
+  views?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   nguoncCreatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -470,6 +485,7 @@ export type MovieScalarWhereWithAggregatesInput = {
   currentEpisode?: Prisma.StringNullableWithAggregatesFilter<"Movie"> | string | null
   status?: Prisma.StringNullableWithAggregatesFilter<"Movie"> | string | null
   year?: Prisma.StringNullableWithAggregatesFilter<"Movie"> | string | null
+  views?: Prisma.IntWithAggregatesFilter<"Movie"> | number
   isActive?: Prisma.BoolWithAggregatesFilter<"Movie"> | boolean
   nguoncCreatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Movie"> | Date | string | null
   lastSyncedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Movie"> | Date | string | null
@@ -495,6 +511,7 @@ export type MovieCreateInput = {
   currentEpisode?: string | null
   status?: string | null
   year?: string | null
+  views?: number
   isActive?: boolean
   nguoncCreatedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
@@ -524,6 +541,7 @@ export type MovieUncheckedCreateInput = {
   currentEpisode?: string | null
   status?: string | null
   year?: string | null
+  views?: number
   isActive?: boolean
   nguoncCreatedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
@@ -553,6 +571,7 @@ export type MovieUpdateInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -582,6 +601,7 @@ export type MovieUncheckedUpdateInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -611,6 +631,7 @@ export type MovieCreateManyInput = {
   currentEpisode?: string | null
   status?: string | null
   year?: string | null
+  views?: number
   isActive?: boolean
   nguoncCreatedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
@@ -636,6 +657,7 @@ export type MovieUpdateManyMutationInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -661,6 +683,7 @@ export type MovieUncheckedUpdateManyInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -686,6 +709,7 @@ export type MovieCountOrderByAggregateInput = {
   currentEpisode?: Prisma.SortOrder
   status?: Prisma.SortOrder
   year?: Prisma.SortOrder
+  views?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   nguoncCreatedAt?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
@@ -695,6 +719,7 @@ export type MovieCountOrderByAggregateInput = {
 
 export type MovieAvgOrderByAggregateInput = {
   totalEpisodes?: Prisma.SortOrder
+  views?: Prisma.SortOrder
 }
 
 export type MovieMaxOrderByAggregateInput = {
@@ -715,6 +740,7 @@ export type MovieMaxOrderByAggregateInput = {
   currentEpisode?: Prisma.SortOrder
   status?: Prisma.SortOrder
   year?: Prisma.SortOrder
+  views?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   nguoncCreatedAt?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
@@ -740,6 +766,7 @@ export type MovieMinOrderByAggregateInput = {
   currentEpisode?: Prisma.SortOrder
   status?: Prisma.SortOrder
   year?: Prisma.SortOrder
+  views?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   nguoncCreatedAt?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
@@ -749,6 +776,7 @@ export type MovieMinOrderByAggregateInput = {
 
 export type MovieSumOrderByAggregateInput = {
   totalEpisodes?: Prisma.SortOrder
+  views?: Prisma.SortOrder
 }
 
 export type MovieScalarRelationFilter = {
@@ -842,6 +870,7 @@ export type MovieCreateWithoutEpisodesInput = {
   currentEpisode?: string | null
   status?: string | null
   year?: string | null
+  views?: number
   isActive?: boolean
   nguoncCreatedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
@@ -870,6 +899,7 @@ export type MovieUncheckedCreateWithoutEpisodesInput = {
   currentEpisode?: string | null
   status?: string | null
   year?: string | null
+  views?: number
   isActive?: boolean
   nguoncCreatedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
@@ -914,6 +944,7 @@ export type MovieUpdateWithoutEpisodesInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -942,6 +973,7 @@ export type MovieUncheckedUpdateWithoutEpisodesInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -970,6 +1002,7 @@ export type MovieCreateWithoutCategoriesInput = {
   currentEpisode?: string | null
   status?: string | null
   year?: string | null
+  views?: number
   isActive?: boolean
   nguoncCreatedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
@@ -998,6 +1031,7 @@ export type MovieUncheckedCreateWithoutCategoriesInput = {
   currentEpisode?: string | null
   status?: string | null
   year?: string | null
+  views?: number
   isActive?: boolean
   nguoncCreatedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
@@ -1042,6 +1076,7 @@ export type MovieUpdateWithoutCategoriesInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1070,6 +1105,7 @@ export type MovieUncheckedUpdateWithoutCategoriesInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1098,6 +1134,7 @@ export type MovieCreateWithoutWatchlistInput = {
   currentEpisode?: string | null
   status?: string | null
   year?: string | null
+  views?: number
   isActive?: boolean
   nguoncCreatedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
@@ -1126,6 +1163,7 @@ export type MovieUncheckedCreateWithoutWatchlistInput = {
   currentEpisode?: string | null
   status?: string | null
   year?: string | null
+  views?: number
   isActive?: boolean
   nguoncCreatedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
@@ -1170,6 +1208,7 @@ export type MovieUpdateWithoutWatchlistInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1198,6 +1237,7 @@ export type MovieUncheckedUpdateWithoutWatchlistInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1226,6 +1266,7 @@ export type MovieCreateWithoutHistoryInput = {
   currentEpisode?: string | null
   status?: string | null
   year?: string | null
+  views?: number
   isActive?: boolean
   nguoncCreatedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
@@ -1254,6 +1295,7 @@ export type MovieUncheckedCreateWithoutHistoryInput = {
   currentEpisode?: string | null
   status?: string | null
   year?: string | null
+  views?: number
   isActive?: boolean
   nguoncCreatedAt?: Date | string | null
   lastSyncedAt?: Date | string | null
@@ -1298,6 +1340,7 @@ export type MovieUpdateWithoutHistoryInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1326,6 +1369,7 @@ export type MovieUncheckedUpdateWithoutHistoryInput = {
   currentEpisode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   year?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   nguoncCreatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1412,6 +1456,7 @@ export type MovieSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   currentEpisode?: boolean
   status?: boolean
   year?: boolean
+  views?: boolean
   isActive?: boolean
   nguoncCreatedAt?: boolean
   lastSyncedAt?: boolean
@@ -1442,6 +1487,7 @@ export type MovieSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   currentEpisode?: boolean
   status?: boolean
   year?: boolean
+  views?: boolean
   isActive?: boolean
   nguoncCreatedAt?: boolean
   lastSyncedAt?: boolean
@@ -1467,6 +1513,7 @@ export type MovieSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   currentEpisode?: boolean
   status?: boolean
   year?: boolean
+  views?: boolean
   isActive?: boolean
   nguoncCreatedAt?: boolean
   lastSyncedAt?: boolean
@@ -1492,6 +1539,7 @@ export type MovieSelectScalar = {
   currentEpisode?: boolean
   status?: boolean
   year?: boolean
+  views?: boolean
   isActive?: boolean
   nguoncCreatedAt?: boolean
   lastSyncedAt?: boolean
@@ -1499,7 +1547,7 @@ export type MovieSelectScalar = {
   updatedAt?: boolean
 }
 
-export type MovieOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nguoncId" | "slug" | "name" | "originalName" | "description" | "thumbUrl" | "posterUrl" | "quality" | "language" | "director" | "casts" | "time" | "totalEpisodes" | "currentEpisode" | "status" | "year" | "isActive" | "nguoncCreatedAt" | "lastSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["movie"]>
+export type MovieOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nguoncId" | "slug" | "name" | "originalName" | "description" | "thumbUrl" | "posterUrl" | "quality" | "language" | "director" | "casts" | "time" | "totalEpisodes" | "currentEpisode" | "status" | "year" | "views" | "isActive" | "nguoncCreatedAt" | "lastSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["movie"]>
 export type MovieInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   episodes?: boolean | Prisma.Movie$episodesArgs<ExtArgs>
   categories?: boolean | Prisma.Movie$categoriesArgs<ExtArgs>
@@ -1536,6 +1584,7 @@ export type $MoviePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     currentEpisode: string | null
     status: string | null
     year: string | null
+    views: number
     isActive: boolean
     nguoncCreatedAt: Date | null
     lastSyncedAt: Date | null
@@ -1985,6 +2034,7 @@ export interface MovieFieldRefs {
   readonly currentEpisode: Prisma.FieldRef<"Movie", 'String'>
   readonly status: Prisma.FieldRef<"Movie", 'String'>
   readonly year: Prisma.FieldRef<"Movie", 'String'>
+  readonly views: Prisma.FieldRef<"Movie", 'Int'>
   readonly isActive: Prisma.FieldRef<"Movie", 'Boolean'>
   readonly nguoncCreatedAt: Prisma.FieldRef<"Movie", 'DateTime'>
   readonly lastSyncedAt: Prisma.FieldRef<"Movie", 'DateTime'>

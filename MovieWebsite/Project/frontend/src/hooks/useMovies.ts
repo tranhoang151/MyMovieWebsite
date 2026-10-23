@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import api from '@/lib/axios';
 import { Movie, PaginatedResponse } from '@/types';
+import { API_ENDPOINTS } from '@/lib/constants';
 
 export function useMovies(params?: { page?: number; limit?: number; type?: string; search?: string }) {
   return useQuery({
@@ -31,5 +32,25 @@ export function useMovie(slug: string) {
       return response.data.data;
     },
     enabled: !!slug,
+  });
+}
+
+export function useRecordView() {
+  return useMutation({
+    mutationFn: async ({
+      slug,
+      episodeSlug,
+      serverName,
+    }: {
+      slug: string;
+      episodeSlug?: string;
+      serverName?: string;
+    }) => {
+      const endpoint = API_ENDPOINTS.MOVIES.RECORD_VIEW(slug, episodeSlug);
+      const res = await api.post(endpoint, null, {
+        params: serverName ? { serverName } : undefined,
+      });
+      return res.data;
+    },
   });
 }

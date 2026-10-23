@@ -109,6 +109,7 @@ export const MovieScalarFieldEnum = {
   currentEpisode: 'currentEpisode',
   status: 'status',
   year: 'year',
+  views: 'views',
   isActive: 'isActive',
   nguoncCreatedAt: 'nguoncCreatedAt',
   lastSyncedAt: 'lastSyncedAt',
@@ -127,7 +128,8 @@ export const EpisodeScalarFieldEnum = {
   slug: 'slug',
   embedUrl: 'embedUrl',
   m3u8Url: 'm3u8Url',
-  sortOrder: 'sortOrder'
+  sortOrder: 'sortOrder',
+  views: 'views'
 } as const
 
 export type EpisodeScalarFieldEnum = (typeof EpisodeScalarFieldEnum)[keyof typeof EpisodeScalarFieldEnum]

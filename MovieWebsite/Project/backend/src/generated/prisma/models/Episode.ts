@@ -28,10 +28,12 @@ export type AggregateEpisode = {
 
 export type EpisodeAvgAggregateOutputType = {
   sortOrder: number | null
+  views: number | null
 }
 
 export type EpisodeSumAggregateOutputType = {
   sortOrder: number | null
+  views: number | null
 }
 
 export type EpisodeMinAggregateOutputType = {
@@ -43,6 +45,7 @@ export type EpisodeMinAggregateOutputType = {
   embedUrl: string | null
   m3u8Url: string | null
   sortOrder: number | null
+  views: number | null
 }
 
 export type EpisodeMaxAggregateOutputType = {
@@ -54,6 +57,7 @@ export type EpisodeMaxAggregateOutputType = {
   embedUrl: string | null
   m3u8Url: string | null
   sortOrder: number | null
+  views: number | null
 }
 
 export type EpisodeCountAggregateOutputType = {
@@ -65,16 +69,19 @@ export type EpisodeCountAggregateOutputType = {
   embedUrl: number
   m3u8Url: number
   sortOrder: number
+  views: number
   _all: number
 }
 
 
 export type EpisodeAvgAggregateInputType = {
   sortOrder?: true
+  views?: true
 }
 
 export type EpisodeSumAggregateInputType = {
   sortOrder?: true
+  views?: true
 }
 
 export type EpisodeMinAggregateInputType = {
@@ -86,6 +93,7 @@ export type EpisodeMinAggregateInputType = {
   embedUrl?: true
   m3u8Url?: true
   sortOrder?: true
+  views?: true
 }
 
 export type EpisodeMaxAggregateInputType = {
@@ -97,6 +105,7 @@ export type EpisodeMaxAggregateInputType = {
   embedUrl?: true
   m3u8Url?: true
   sortOrder?: true
+  views?: true
 }
 
 export type EpisodeCountAggregateInputType = {
@@ -108,6 +117,7 @@ export type EpisodeCountAggregateInputType = {
   embedUrl?: true
   m3u8Url?: true
   sortOrder?: true
+  views?: true
   _all?: true
 }
 
@@ -206,6 +216,7 @@ export type EpisodeGroupByOutputType = {
   embedUrl: string | null
   m3u8Url: string | null
   sortOrder: number
+  views: number
   _count: EpisodeCountAggregateOutputType | null
   _avg: EpisodeAvgAggregateOutputType | null
   _sum: EpisodeSumAggregateOutputType | null
@@ -240,6 +251,7 @@ export type EpisodeWhereInput = {
   embedUrl?: Prisma.StringNullableFilter<"Episode"> | string | null
   m3u8Url?: Prisma.StringNullableFilter<"Episode"> | string | null
   sortOrder?: Prisma.IntFilter<"Episode"> | number
+  views?: Prisma.IntFilter<"Episode"> | number
   movie?: Prisma.XOR<Prisma.MovieScalarRelationFilter, Prisma.MovieWhereInput>
   history?: Prisma.WatchHistoryListRelationFilter
 }
@@ -253,6 +265,7 @@ export type EpisodeOrderByWithRelationInput = {
   embedUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   m3u8Url?: Prisma.SortOrderInput | Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
+  views?: Prisma.SortOrder
   movie?: Prisma.MovieOrderByWithRelationInput
   history?: Prisma.WatchHistoryOrderByRelationAggregateInput
 }
@@ -270,6 +283,7 @@ export type EpisodeWhereUniqueInput = Prisma.AtLeast<{
   embedUrl?: Prisma.StringNullableFilter<"Episode"> | string | null
   m3u8Url?: Prisma.StringNullableFilter<"Episode"> | string | null
   sortOrder?: Prisma.IntFilter<"Episode"> | number
+  views?: Prisma.IntFilter<"Episode"> | number
   movie?: Prisma.XOR<Prisma.MovieScalarRelationFilter, Prisma.MovieWhereInput>
   history?: Prisma.WatchHistoryListRelationFilter
 }, "id" | "movieId_serverName_slug">
@@ -283,6 +297,7 @@ export type EpisodeOrderByWithAggregationInput = {
   embedUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   m3u8Url?: Prisma.SortOrderInput | Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
+  views?: Prisma.SortOrder
   _count?: Prisma.EpisodeCountOrderByAggregateInput
   _avg?: Prisma.EpisodeAvgOrderByAggregateInput
   _max?: Prisma.EpisodeMaxOrderByAggregateInput
@@ -302,6 +317,7 @@ export type EpisodeScalarWhereWithAggregatesInput = {
   embedUrl?: Prisma.StringNullableWithAggregatesFilter<"Episode"> | string | null
   m3u8Url?: Prisma.StringNullableWithAggregatesFilter<"Episode"> | string | null
   sortOrder?: Prisma.IntWithAggregatesFilter<"Episode"> | number
+  views?: Prisma.IntWithAggregatesFilter<"Episode"> | number
 }
 
 export type EpisodeCreateInput = {
@@ -312,6 +328,7 @@ export type EpisodeCreateInput = {
   embedUrl?: string | null
   m3u8Url?: string | null
   sortOrder?: number
+  views?: number
   movie: Prisma.MovieCreateNestedOneWithoutEpisodesInput
   history?: Prisma.WatchHistoryCreateNestedManyWithoutEpisodeInput
 }
@@ -325,6 +342,7 @@ export type EpisodeUncheckedCreateInput = {
   embedUrl?: string | null
   m3u8Url?: string | null
   sortOrder?: number
+  views?: number
   history?: Prisma.WatchHistoryUncheckedCreateNestedManyWithoutEpisodeInput
 }
 
@@ -336,6 +354,7 @@ export type EpisodeUpdateInput = {
   embedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   m3u8Url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   movie?: Prisma.MovieUpdateOneRequiredWithoutEpisodesNestedInput
   history?: Prisma.WatchHistoryUpdateManyWithoutEpisodeNestedInput
 }
@@ -349,6 +368,7 @@ export type EpisodeUncheckedUpdateInput = {
   embedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   m3u8Url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   history?: Prisma.WatchHistoryUncheckedUpdateManyWithoutEpisodeNestedInput
 }
 
@@ -361,6 +381,7 @@ export type EpisodeCreateManyInput = {
   embedUrl?: string | null
   m3u8Url?: string | null
   sortOrder?: number
+  views?: number
 }
 
 export type EpisodeUpdateManyMutationInput = {
@@ -371,6 +392,7 @@ export type EpisodeUpdateManyMutationInput = {
   embedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   m3u8Url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  views?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type EpisodeUncheckedUpdateManyInput = {
@@ -382,6 +404,7 @@ export type EpisodeUncheckedUpdateManyInput = {
   embedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   m3u8Url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  views?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type EpisodeListRelationFilter = {
@@ -409,10 +432,12 @@ export type EpisodeCountOrderByAggregateInput = {
   embedUrl?: Prisma.SortOrder
   m3u8Url?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
+  views?: Prisma.SortOrder
 }
 
 export type EpisodeAvgOrderByAggregateInput = {
   sortOrder?: Prisma.SortOrder
+  views?: Prisma.SortOrder
 }
 
 export type EpisodeMaxOrderByAggregateInput = {
@@ -424,6 +449,7 @@ export type EpisodeMaxOrderByAggregateInput = {
   embedUrl?: Prisma.SortOrder
   m3u8Url?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
+  views?: Prisma.SortOrder
 }
 
 export type EpisodeMinOrderByAggregateInput = {
@@ -435,10 +461,12 @@ export type EpisodeMinOrderByAggregateInput = {
   embedUrl?: Prisma.SortOrder
   m3u8Url?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
+  views?: Prisma.SortOrder
 }
 
 export type EpisodeSumOrderByAggregateInput = {
   sortOrder?: Prisma.SortOrder
+  views?: Prisma.SortOrder
 }
 
 export type EpisodeScalarRelationFilter = {
@@ -510,6 +538,7 @@ export type EpisodeCreateWithoutMovieInput = {
   embedUrl?: string | null
   m3u8Url?: string | null
   sortOrder?: number
+  views?: number
   history?: Prisma.WatchHistoryCreateNestedManyWithoutEpisodeInput
 }
 
@@ -521,6 +550,7 @@ export type EpisodeUncheckedCreateWithoutMovieInput = {
   embedUrl?: string | null
   m3u8Url?: string | null
   sortOrder?: number
+  views?: number
   history?: Prisma.WatchHistoryUncheckedCreateNestedManyWithoutEpisodeInput
 }
 
@@ -562,6 +592,7 @@ export type EpisodeScalarWhereInput = {
   embedUrl?: Prisma.StringNullableFilter<"Episode"> | string | null
   m3u8Url?: Prisma.StringNullableFilter<"Episode"> | string | null
   sortOrder?: Prisma.IntFilter<"Episode"> | number
+  views?: Prisma.IntFilter<"Episode"> | number
 }
 
 export type EpisodeCreateWithoutHistoryInput = {
@@ -572,6 +603,7 @@ export type EpisodeCreateWithoutHistoryInput = {
   embedUrl?: string | null
   m3u8Url?: string | null
   sortOrder?: number
+  views?: number
   movie: Prisma.MovieCreateNestedOneWithoutEpisodesInput
 }
 
@@ -584,6 +616,7 @@ export type EpisodeUncheckedCreateWithoutHistoryInput = {
   embedUrl?: string | null
   m3u8Url?: string | null
   sortOrder?: number
+  views?: number
 }
 
 export type EpisodeCreateOrConnectWithoutHistoryInput = {
@@ -610,6 +643,7 @@ export type EpisodeUpdateWithoutHistoryInput = {
   embedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   m3u8Url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   movie?: Prisma.MovieUpdateOneRequiredWithoutEpisodesNestedInput
 }
 
@@ -622,6 +656,7 @@ export type EpisodeUncheckedUpdateWithoutHistoryInput = {
   embedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   m3u8Url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  views?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type EpisodeCreateManyMovieInput = {
@@ -632,6 +667,7 @@ export type EpisodeCreateManyMovieInput = {
   embedUrl?: string | null
   m3u8Url?: string | null
   sortOrder?: number
+  views?: number
 }
 
 export type EpisodeUpdateWithoutMovieInput = {
@@ -642,6 +678,7 @@ export type EpisodeUpdateWithoutMovieInput = {
   embedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   m3u8Url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   history?: Prisma.WatchHistoryUpdateManyWithoutEpisodeNestedInput
 }
 
@@ -653,6 +690,7 @@ export type EpisodeUncheckedUpdateWithoutMovieInput = {
   embedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   m3u8Url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  views?: Prisma.IntFieldUpdateOperationsInput | number
   history?: Prisma.WatchHistoryUncheckedUpdateManyWithoutEpisodeNestedInput
 }
 
@@ -664,6 +702,7 @@ export type EpisodeUncheckedUpdateManyWithoutMovieInput = {
   embedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   m3u8Url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
+  views?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 
@@ -706,6 +745,7 @@ export type EpisodeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   embedUrl?: boolean
   m3u8Url?: boolean
   sortOrder?: boolean
+  views?: boolean
   movie?: boolean | Prisma.MovieDefaultArgs<ExtArgs>
   history?: boolean | Prisma.Episode$historyArgs<ExtArgs>
   _count?: boolean | Prisma.EpisodeCountOutputTypeDefaultArgs<ExtArgs>
@@ -720,6 +760,7 @@ export type EpisodeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   embedUrl?: boolean
   m3u8Url?: boolean
   sortOrder?: boolean
+  views?: boolean
   movie?: boolean | Prisma.MovieDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["episode"]>
 
@@ -732,6 +773,7 @@ export type EpisodeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   embedUrl?: boolean
   m3u8Url?: boolean
   sortOrder?: boolean
+  views?: boolean
   movie?: boolean | Prisma.MovieDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["episode"]>
 
@@ -744,9 +786,10 @@ export type EpisodeSelectScalar = {
   embedUrl?: boolean
   m3u8Url?: boolean
   sortOrder?: boolean
+  views?: boolean
 }
 
-export type EpisodeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "movieId" | "serverName" | "name" | "slug" | "embedUrl" | "m3u8Url" | "sortOrder", ExtArgs["result"]["episode"]>
+export type EpisodeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "movieId" | "serverName" | "name" | "slug" | "embedUrl" | "m3u8Url" | "sortOrder" | "views", ExtArgs["result"]["episode"]>
 export type EpisodeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   movie?: boolean | Prisma.MovieDefaultArgs<ExtArgs>
   history?: boolean | Prisma.Episode$historyArgs<ExtArgs>
@@ -774,6 +817,7 @@ export type $EpisodePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     embedUrl: string | null
     m3u8Url: string | null
     sortOrder: number
+    views: number
   }, ExtArgs["result"]["episode"]>
   composites: {}
 }
@@ -1207,6 +1251,7 @@ export interface EpisodeFieldRefs {
   readonly embedUrl: Prisma.FieldRef<"Episode", 'String'>
   readonly m3u8Url: Prisma.FieldRef<"Episode", 'String'>
   readonly sortOrder: Prisma.FieldRef<"Episode", 'Int'>
+  readonly views: Prisma.FieldRef<"Episode", 'Int'>
 }
     
 

@@ -25,6 +25,10 @@ export const API_ENDPOINTS = {
     LIST: '/movies',
     DETAIL: '/movies',
     SEARCH: '/movies/search',
+    RECORD_VIEW: (slug: string, episodeSlug?: string) =>
+      episodeSlug
+        ? `/movies/${slug}/episodes/${episodeSlug}/view`
+        : `/movies/${slug}/view`,
     SYNC: '/admin/movies/import',
     SYNC_EPISODES: '/movies',
     DELETE: '/admin/movies',
